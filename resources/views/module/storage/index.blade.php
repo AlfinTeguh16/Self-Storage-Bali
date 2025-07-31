@@ -28,7 +28,10 @@
                     <td class="px-4 py-2">{{ number_format($storage->price, 0, ',', '.') }}</td>
                     <td class="px-4 py-2 flex justify-center ">
                         <x-button variant="neutral" onclick="window.location='{{ route('data-storage.edit', $storage->id) }}'" class="gap-1 flex flex-row items-center align-middle justify-center mx-1 "> <i class="ph-bold ph-pencil-simple"></i></x-button>
-                        <x-button variant="delete" onclick="window.location='{{ route('data-storage.destroy', $storage->id) }}'" class="gap-1 flex flex-row items-center align-middle justify-center mx-1 "> <i class="ph-bold ph-trash"></i></x-button>
+                        <form action="{{ route('data-storage.destroy', $storage->id) }}" method="POST" class="mx-1">
+                            @csrf @method('DELETE')
+                            <x-button variant="delete" onclick="return confirm('Hapus storage ini?')"><i class="ph-bold ph-trash"></i></x-button>
+                        </form>
                     </td>
                 </tr>
                 @endforeach
@@ -37,11 +40,5 @@
     </div>
 </section>
 
-<div>
-    <x-card title="Storage Summary" class="mt-6">
-        <p>Total Storage Units: {{ $storages->count() }}</p>
-        <p>Total Revenue: Rp. {{ number_format($storages->sum('price'), 0, ',', '.') }}</p>
-    </x-card>
-</div>
 
 @endsection
