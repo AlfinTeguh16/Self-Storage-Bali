@@ -3,7 +3,7 @@
 @section('content')
 
 <section>
-    <form action="{{ route('data-box.update', $dataBox->id) }}" method="post">
+    <form action="{{ route('data-storage.update', $storage->id) }}" method="post">
         @csrf
         @method('PUT')
         <div class="flex md:flex-row md:justify-between">
@@ -14,7 +14,7 @@
                 type="text"
                 placeholder="Masukkan Ukuran"
                 required="true"
-                :value="$dataBox->ukuran"
+                :value="$storage->ukuran"
             />
             <x-form
                 name="deskripsi"
@@ -22,7 +22,7 @@
                 type="textarea"
                 placeholder="Masukkan Deskripsi"
                 required="true"
-                :value="$dataBox->deskripsi"
+                :value="$storage->deskripsi"
             />
           </div>
           <div class="p-3 w-full">
@@ -33,7 +33,7 @@
                 placeholder="Masukkan Harga"
                 required="true"
                 allow="numeric"
-                :value="$dataBox->harga"
+                :value="$storage->harga"
             />
             <x-form
                 name="jumlah"
@@ -41,7 +41,7 @@
                 type="text"
                 placeholder="Masukkan Jumlah"
                 required="true"
-                :value="$dataBox->jumlah"
+                :value="$storage->jumlah"
             />
           </div>
         </div>

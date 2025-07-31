@@ -37,4 +37,11 @@
     </div>
 </section>
 
+<div>
+    <x-card title="Storage Summary" class="mt-6">
+        <p>Total Storage Units: {{ $storages->count() }}</p>
+        <p>Total Revenue: Rp. {{ number_format($storages->sum('price'), 0, ',', '.') }}</p>
+    </x-card>
+</div>
+
 @endsection
