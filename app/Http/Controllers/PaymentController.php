@@ -5,6 +5,10 @@ namespace App\Http\Controllers;
 use App\Models\Payment;
 use App\Models\Customer;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
+
 
 class PaymentController extends Controller
 {
@@ -36,19 +40,43 @@ class PaymentController extends Controller
     public function store(Request $request)
     {
         try {
+            Log::info('Start storing payment', ['request' => $request->all()]);
+
             $validated = $request->validate([
                 'customer_id' => 'required|exists:tb_customers,id',
                 'method' => 'required|string|max:50',
-                'transaction_file' => 'nullable|string', // URL atau base64 atau path
+                'transaction_file' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048',
             ]);
+            Log::info('Validation passed', ['validated' => $validated]);
 
-            Payment::create($validated);
+            $image = $request->file('transaction_file');
+            Log::info('Transaction file check', ['has_file' => $image !== null]);
+
+            if ($image) {
+                $fileName = time() . '-' . Str::slug($request->customer_id);
+                $resultFile = $image->storeAs(
+                    'payment/transaction',
+                    "{$fileName}.{$image->extension()}",
+                    'public'
+                );
+                Log::info('File stored successfully', ['path' => $resultFile]);
+
+                $validated['transaction_file'] = Storage::url($resultFile);
+            }
+
+            $payment = Payment::create($validated);
+            Log::info('Payment created', ['payment_id' => $payment->id]);
 
             return redirect()->route('data-payment.index')->with('success', 'Payment recorded successfully.');
         } catch (\Exception $e) {
+            Log::error('Error storing payment', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
             return redirect()->back()->withErrors($e->getMessage())->withInput();
         }
     }
+
 
     /**
      * Display the specified payment.
@@ -83,8 +111,26 @@ class PaymentController extends Controller
             $validated = $request->validate([
                 'customer_id' => 'required|exists:tb_customers,id',
                 'method' => 'required|string|max:50',
-                'transaction_file' => 'nullable|string',
+                'transaction_file' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048',
             ]);
+
+            // Cek apakah ada file baru
+            if ($request->hasFile('transaction_file')) {
+                // Hapus file lama jika ada
+                if ($payment->transaction_file && Storage::exists(str_replace('/storage', 'public', $payment->transaction_file))) {
+                    Storage::delete(str_replace('/storage', 'public', $payment->transaction_file));
+                }
+
+                // Simpan file baru
+                $fileName = time() . '-' . Str::slug($request->customer_id);
+                $path = $request->file('transaction_file')
+                                ->storeAs('payment/transaction', "{$fileName}.{$request->file('transaction_file')->extension()}", 'public');
+
+                $validated['transaction_file'] = Storage::url($path);
+            } else {
+                // Kalau tidak upload file baru, pertahankan file lama
+                $validated['transaction_file'] = $payment->transaction_file;
+            }
 
             $payment->update($validated);
 

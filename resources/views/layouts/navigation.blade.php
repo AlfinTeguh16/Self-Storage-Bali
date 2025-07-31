@@ -25,6 +25,9 @@
             <x-nav-link href="{{ route('data-customer.index') }}" :active="request()->routeIs('data-customer.*')">
               <p class="mr-2"> <i class="ph ph-user"></i>Customers </p>
             </x-nav-link>
+            <x-nav-link href="{{ route('data-payment.index') }}" :active="request()->routeIs('data-payment.*')">
+              <p class="mr-2"> <i class="ph ph-credit-card"></i>Payment </p>
+            </x-nav-link>
           @endif
         @endauth
 
