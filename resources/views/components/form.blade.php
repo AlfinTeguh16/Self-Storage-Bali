@@ -1,6 +1,6 @@
-<div class="space-y-4">
+<div>
     @if($label)
-        <label for="{{ $name }}" class="block text-sm font-medium text-gray-700">
+        <label for="{{ $name }}" class="block text-sm font-medium text-gray-700 mt-2">
             {{ $label }}
             @if($required)
                 <span class="text-red-500">*</span>
