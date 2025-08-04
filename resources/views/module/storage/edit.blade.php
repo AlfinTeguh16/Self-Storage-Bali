@@ -9,39 +9,31 @@
         <div class="flex md:flex-row md:justify-between">
           <div class="p-3 w-full">
             <x-form
-                name="ukuran"
-                label="Ukuran"
+                name="size"
+                label="Size"
                 type="text"
-                placeholder="Masukkan Ukuran"
+                placeholder="Masukkan size"
                 required="true"
-                :value="$storage->ukuran"
+                value="{{ old('size', $storage->size) }}"
             />
             <x-form
-                name="deskripsi"
-                label="Deskripsi"
+                name="description"
+                label="Description"
                 type="textarea"
-                placeholder="Masukkan Deskripsi"
+                placeholder="Masukkan Description"
                 required="true"
-                :value="$storage->deskripsi"
+                value="{{ old('description', $storage->description) }}"
             />
           </div>
           <div class="p-3 w-full">
             <x-form
-                name="harga"
-                label="Harga"
+                name="price"
+                label="Price"
                 type="text"
-                placeholder="Masukkan Harga"
+                placeholder="Masukkan Price"
                 required="true"
                 allow="numeric"
-                :value="$storage->harga"
-            />
-            <x-form
-                name="jumlah"
-                label="Jumlah"
-                type="text"
-                placeholder="Masukkan Jumlah"
-                required="true"
-                :value="$storage->jumlah"
+                value="{{ old('price', $storage->price) }}"
             />
           </div>
         </div>

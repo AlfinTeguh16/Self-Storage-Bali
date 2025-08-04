@@ -74,7 +74,6 @@ class StorageController extends Controller
                 'size' => 'required|string|max:50',
                 'description' => 'nullable|string',
                 'price' => 'required|integer|min:0',
-                'amount' => 'required|integer|min:0',
             ]);
 
             $storage = Storage::where('is_deleted', false)->findOrFail($id);
