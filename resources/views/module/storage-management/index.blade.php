@@ -2,85 +2,127 @@
 @section('title', 'Storage Management')
 @section('content')
 
-<h1 class="text-2xl font-bold mb-4">Storage Management</h1>
+<h1 class="text-3xl font-bold mb-6 text-gray-800">Storage Management</h1>
 
 @foreach($storages as $size => $storageGroup)
-    {{-- Header per Size --}}
-    <h2 class="text-xl font-semibold mt-4 mb-2">Size: {{ $size }}</h2>
+    <h2 class="text-xl font-semibold mt-6 mb-4 text-slate-700 flex items-center gap-2">
+        <svg class="w-5 h-5 text-slate-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M3 7h18M3 12h18M3 17h18"/>
+        </svg>
+        Size: {{ $size }}
+    </h2>
 
-    <div class="grid grid-cols-6 gap-4">
+    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-5">
         @foreach($storageGroup as $storage)
             @php
-                $isBooked = $storage->storageManagement
-                    ->where('status', 'booked')
-                    ->isNotEmpty();
-
-                $lastClean = optional($storage->storageManagement->last())->last_clean;
-            @endphp
-
-            <button
-                class="storage-button p-3 border rounded-lg text-center w-full
-                {{ $isBooked ? 'bg-red-300 text-white' : 'bg-green-200' }}"
-                data-storage-id="{{ $storage->id }}"
-                data-storage-description="{{ $storage->description ?? 'Tidak ada deskripsi' }}"
-                data-storage-size="{{ $storage->size }}"
-                data-last-clean="{{ $lastClean ?? 'Belum Pernah' }}"
-            >
-                <p><strong>ID:</strong> {{ $storage->id }}</p>
-                <p>{{ $storage->description }}</p>
-                <p class="text-xs mt-2"><strong>Last Clean:</strong> {{ $lastClean ?? '-' }}</p>
-            </button>
-        @endforeach
-    </div>
-@endforeach
-{{-- Overlay (hanya 1x, di luar loop) --}}
-@foreach($storages as $size => $storageGroup)
-    <h2 class="text-xl font-semibold mt-4 mb-2">Size: {{ $size }}</h2>
-    <div class="grid grid-cols-6 gap-4">
-        @foreach($storageGroup as $storage)
-            @php
+                // record terbaru (sudah di-eager load desc by id dari controller)
+                $management = $storage->storageManagement->first();
                 $isBooked = $storage->storageManagement->where('status', 'booked')->isNotEmpty();
-                $management = $storage->storageManagement->last(); // Ambil relasi management terakhir
+
+                $statusIcon = $isBooked ? '❌' : '✔';
+                $statusText = $isBooked ? 'Booked' : 'Available';
+                $bgColor = $isBooked
+                    ? 'bg-gradient-to-br from-red-300 to-red-400 text-white'
+                    : 'bg-gradient-to-br from-green-200 to-green-300 text-gray-800';
+
+                // Teks human readable untuk tampilan card
+                $lastCleanHuman = $management?->last_clean
+                    ? \Illuminate\Support\Carbon::parse($management->last_clean)->toFormattedDateString()
+                    : 'Never Cleaned';
+
+                // Nilai yang valid untuk <input type="date">
+                $lastCleanValue = $management?->last_clean
+                    ? \Illuminate\Support\Carbon::parse($management->last_clean)->format('Y-m-d')
+                    : null;
             @endphp
 
-            {{-- Tombol untuk buka modal --}}
-            <button class="p-3 border rounded-lg text-center w-full {{ $isBooked ? 'bg-red-300 text-white' : 'bg-green-200' }}"
-                data-bs-toggle="modal"
-                data-bs-target="#editLastCleanModal-{{ $management->id }}">
-                <p><strong>ID:</strong> {{ $storage->storages_id }}</p>
-                <p>{{ $storage->description }}</p>
-                <p class="text-xs mt-2"><strong>Last Clean:</strong> {{ $management->last_clean ?? '-' }}</p>
-            </button>
+            <div x-data="{ open:false }" class="relative">
+                {{-- CARD --}}
+                <div
+                    role="button" tabindex="0"
+                    class="p-4 rounded-2xl shadow-md hover:shadow-lg transition transform hover:-translate-y-1
+                           {{ $bgColor }} {{ $management ? 'cursor-pointer' : 'cursor-not-allowed opacity-80' }}"
+                    @if($management)
+                        @click="open = true; document.documentElement.classList.add('overflow-hidden')"
+                        @keydown.enter.prevent="open = true; document.documentElement.classList.add('overflow-hidden')"
+                    @else
+                        title="No management data available"
+                    @endif
+                >
+                    <div class="flex justify-between items-center mb-3">
+                        <span class="text-lg font-semibold">{{ $statusIcon }} {{ $statusText }}</span>
+                        <span class="text-sm bg-white/20 px-3 py-1 rounded-full">{{ $size }}</span>
+                    </div>
 
-            {{-- Modal Bootstrap untuk Edit Last Clean --}}
-            <div id="editLastCleanModal-{{ $management->id }}" class="modal fade" tabindex="-1" aria-labelledby="editLastCleanLabel-{{ $management->id }}" aria-hidden="true">
-                <div class="modal-dialog">
-                    <form method="POST" action="{{ route('storage-management.last-clean', $management->id) }}" class="modal-content">
-                        @csrf
-                        @method('PUT')
-                        <div class="modal-header">
-                            <h5 class="modal-title fs-6" id="editLastCleanLabel-{{ $management->id }}">Update Last Clean</h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                        </div>
+                    <p class="text-sm line-clamp-2">
+                        {{ $storage->description ?? 'Tidak ada deskripsi' }}
+                    </p>
 
-                        <div class="modal-body p-4">
-                            <div class="mb-3 form-group">
-                                <label class="form-label" for="lastClean-{{ $management->id }}">Tanggal Last Clean <span class="text-danger">*</span></label>
-                                <input id="lastClean-{{ $management->id }}" class="form-control" type="date" name="last_clean" value="{{ $management->last_clean }}" required />
-                            </div>
-                        </div>
-
-                        <div class="modal-footer">
-                            <button type="submit" class="btn btn-primary">Simpan</button>
-                            <button type="button" class="btn btn-light" data-bs-dismiss="modal">Batalkan</button>
-                        </div>
-                    </form>
+                    <p class="text-xs mt-3">
+                        <strong>Last Clean:</strong> {{ $lastCleanHuman }}
+                    </p>
                 </div>
+
+                {{-- MODAL (Tailwind + Alpine) --}}
+                @if($management)
+                <div
+                    x-show="open"
+                    x-transition.opacity
+                    @keydown.escape.window="open = false; document.documentElement.classList.remove('overflow-hidden')"
+                    @click.self="open = false; document.documentElement.classList.remove('overflow-hidden')"
+                    class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+                    aria-modal="true"
+                    role="dialog"
+                >
+                    <div
+                        x-show="open"
+                        x-transition.scale.origin.center
+                        class="w-full max-w-md"
+                    >
+                        <x-card title="Update Last Clean" class="relative">
+                            <button
+                                @click="open = false; document.documentElement.classList.remove('overflow-hidden')"
+                                class="absolute top-3 right-3 text-gray-500 hover:text-gray-800"
+                                aria-label="Close"
+                            >✖</button>
+
+                            <form method="POST" action="{{ route('storage-management.last-clean', $management->id) }}" class="space-y-4">
+                                @csrf
+                                @method('PUT')
+
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700" for="lastClean-{{ $management->id }}">
+                                        Tanggal Last Clean <span class="text-red-500">*</span>
+                                    </label>
+                                    <input
+                                        id="lastClean-{{ $management->id }}"
+                                        type="date"
+                                        name="last_clean"
+                                        value="{{ $lastCleanValue }}"
+                                        class="w-full border rounded-lg p-2 mt-1 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                        required
+                                    >
+                                </div>
+
+                                <div class="flex justify-end gap-2">
+                                    <button type="button"
+                                            @click="open = false; document.documentElement.classList.remove('overflow-hidden')"
+                                            class="px-4 py-2 bg-gray-200 rounded-lg hover:bg-gray-300">
+                                        Batal
+                                    </button>
+                                    <button type="submit"
+                                            class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700">
+                                        Simpan
+                                    </button>
+                                </div>
+                            </form>
+                        </x-card>
+                    </div>
+                </div>
+                @endif
             </div>
         @endforeach
     </div>
 @endforeach
-
-
 
 @endsection
