@@ -34,7 +34,10 @@
                     <td class="px-4 py-2 flex justify-center ">
                         <x-button variant="neutral" onclick="window.location='{{ route('data-booking.show', $booking->id) }}'" class="gap-1 flex flex-row items-center align-middle justify-center mx-1 "> <i class="ph-bold ph-eye"></i></x-button>
                         <x-button variant="secondary" onclick="window.location='{{ route('data-booking.edit', $booking->id) }}'" class="gap-1 flex flex-row items-center align-middle justify-center mx-1 "> <i class="ph-bold ph-pencil-simple"></i></x-button>
-                        <x-button variant="delete" onclick="window.location='{{ route('data-booking.destroy', $booking->id) }}'" class="gap-1 flex flex-row items-center align-middle justify-center mx-1 "> <i class="ph-bold ph-trash"></i></x-button>
+                        <form action="{{ route('data-booking.destroy', $booking->id) }}" method="POST" class="inline">
+                            @csrf @method('DELETE')
+                            <x-button variant="delete" onclick="return confirm('You are about to delete this booking. Are you sure?')"> <i class="ph-bold ph-trash"></i></x-button>
+                        </form>
                     </td>
                 </tr>
                 @endforeach
