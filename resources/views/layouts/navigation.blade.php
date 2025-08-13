@@ -7,8 +7,8 @@
       <button id="close-menu" class="lg:hidden text-white active:bg-gray-500 hover:bg-gray-500 px-2 py-1 rounded-lg bg-gray-400"><i class="ph-bold ph-x"></i></button>
     </div>
       <ul class="space-y-2">
-      <x-nav-link href="{{ route('dashboard') }}" :active="request()->routeIs('dashboard*')">
-        <p class="mr-2"> <i class="ph ph-home"></i> Dashboard </p>
+      <x-nav-link href="{{ route('dashboard.admin') }}" :active="request()->routeIs('dashboard.admin*')">
+        <p class="mr-2"> <i class="ph ph-house"></i> Dashboard </p>
       </x-nav-link>
 
         @auth

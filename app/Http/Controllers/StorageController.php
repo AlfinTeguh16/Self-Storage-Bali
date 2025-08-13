@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Storage;
+use App\Models\StorageManagement;
+use Illuminate\Support\Facades\Log;
 
 class StorageController extends Controller
 {
@@ -32,18 +34,59 @@ class StorageController extends Controller
      */
     public function store(Request $request)
     {
+        // dd($request->all());
         try {
+            Log::info('Start storing storage', ['request' => $request->all()]);
+
             $validated = $request->validate([
-                'size' => 'required|string|max:50',
+                'size'        => 'required|string|max:50',
                 'description' => 'nullable|string',
-                'price' => 'required|integer|min:0',
+                'price'       => 'required|integer|min:0',
+            ]);
+            Log::info('Validation passed for storage', ['validated' => $validated]);
+
+            // Simpan storage
+            $storage = Storage::create($validated);
+            Log::info('Storage created', ['storage_id' => $storage->id]);
+
+            // Simpan storage management default
+            $sm = StorageManagement::create([
+                'storage_id'  => $storage->id,
+                'booking_id'  => null,
+                'status'      => 'available',
+                'last_clean'  => null,
+                'is_deleted'  => 0,
             ]);
 
-            Storage::create($validated);
-            return redirect()->route('data-storage.index')->with('success', 'Data Storage created successfully');
+            Log::info('Storage management created', [
+                'storage_management_id' => $sm->id,
+                'storage_id' => $storage->id,
+                'status' => $sm->status
+            ]);
+   
+
+            // return response()->json([
+            //     'status' => 'success',
+            //     'data storage' => $storage,
+            //     'storage management' => $sm,
+            // ]);
+
+
+            return redirect()
+                ->route('data-storage.index')
+                ->with('success', 'Data Storage created successfully');
         } catch (\Exception $e) {
-            return redirect()->back()->withErrors($e->getMessage())->withInput();
+            Log::error('Error storing storage', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            return redirect()
+                ->back()
+                ->withErrors($e->getMessage())
+                ->withInput();
         }
+
     }
 
     /**

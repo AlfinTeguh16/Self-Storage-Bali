@@ -5,7 +5,7 @@
 <section>
     <div>
             <h1 class="text-2xl font-semibold mb-4">Data customers</h1>
-            <x-button onclick="window.location='{{ route('data-customer.create') }}'" class="gap-1 flex flex-row items-center align-middle justify-center">Create New Customer <i class="ph-bold ph-plus-square"></i></x-button>
+            <x-button onclick="openCustomerModal()" class="gap-1 flex flex-row items-center align-middle justify-center">Create New Customer <i class="ph-bold ph-plus-square"></i></x-button>
             <p class="text-gray-600 mb-6">Manage your customers here.</p>
     </div>
 
@@ -41,5 +41,43 @@
         </table>
     </div>
 </section>
+
+
+
+<section id="newCustomerModal"
+class="absolute inset-0 z-50  items-center justify-center  hidden h-[90vh]">
+    {{-- <div class="z-60 absolute bg-[radial-gradient(closest-side,theme(colors.gray.500),theme(colors.gray.400),theme(colors.gray.200))] opacity-50 h-full w-full"></div> --}}
+    <div class=" bg-white rounded-lg w-full max-w-xl p-6 relative opacity-100 shadow-3xl border border-gray-200">
+        <span class="absolute top-3 right-4 text-2xl font-bold cursor-pointer" onclick="closeCustomerModal()">&times;</span>
+        <form action="{{ route('data-customer.store') }}" method="POST" class="w-full">
+            @csrf
+            <div class="flex flex-col gap-3 mt-5">
+                <h2 class="text-xl font-semibold mb-2">New Customer</h2>
+                <x-form name="name" label="Name" type="text" required="true" />
+                <x-form name="email" label="Email" type="email" required="true" />
+                <x-form name="phone" label="Phone" type="text" required="true" />
+                <x-form name="address" label="Address" type="text" required="true" />
+                <x-form name="credential" label="Credential" type="file" required="true" />
+                <div class="flex justify-end gap-2 mt-4">
+                    <x-button type="button" onclick="closeCustomerModal()">Cancel</x-button>
+                    <x-button type="submit">Add Customer</x-button>
+                </div>
+            </div>
+        </form>
+    </div>
+</section>
+
+
+<script>
+    function openCustomerModal() {
+        document.getElementById('newCustomerModal').classList.remove('hidden');
+        document.getElementById('newCustomerModal').classList.add('flex');
+    }
+
+    function closeCustomerModal() {
+        document.getElementById('newCustomerModal').classList.add('hidden');
+        document.getElementById('newCustomerModal').classList.remove('flex');
+    }
+</script>
 
     @endsection

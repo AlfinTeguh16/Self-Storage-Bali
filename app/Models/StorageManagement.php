@@ -12,6 +12,14 @@ class StorageManagement extends Model
         'storage_id', 'booking_id', 'status', 'last_clean', 'is_deleted',
     ];
 
+
+
+
+    protected $casts = [
+        'last_clean' => 'datetime',
+        'is_deleted' => 'boolean',
+    ];
+
     public function storage()
     {
         return $this->belongsTo(Storage::class, 'storage_id');
@@ -23,4 +31,21 @@ class StorageManagement extends Model
     }
 
     public $timestamps = true;
+
+
+    // Scope methods for filtering
+    public function scopeActive($query)
+    {
+        return $query->where('is_deleted', false);
+    }
+
+    public function scopeBooked($query)
+    {
+        return $query->where('status', 'booked');
+    }
+
+    public function scopeAvailable($query)
+    {
+        return $query->where('status', 'available');
+    }
 }

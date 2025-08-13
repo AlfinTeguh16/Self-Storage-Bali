@@ -17,5 +17,10 @@ class Storage extends Model
         return $this->hasMany(StorageManagement::class, 'storage_id');
     }
 
+    public function latestManagement()
+    {
+        return $this->hasOne(StorageManagement::class, 'storage_id')->latest();
+    }
+
     public $timestamps = true;
 }

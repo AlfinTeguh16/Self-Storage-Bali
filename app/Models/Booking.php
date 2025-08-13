@@ -7,15 +7,28 @@ use Illuminate\Database\Eloquent\Model;
 
 class Booking extends Model
 {
+    use HasFactory;
+
     protected $table = 'tb_bookings';
 
     protected $fillable = [
-        'customer_id', 'booking_ref', 'start_date', 'end_date', 'notes', 'is_deleted',
+        'customer_id', 'storage_id', 'booking_ref', 'start_date', 'end_date', 'notes', 'is_deleted',
     ];
+
+    protected $casts = [
+        'start_date' => 'date',
+        'end_date' => 'date',
+    ];
+
 
     public function customer()
     {
         return $this->belongsTo(Customer::class, 'customer_id');
+    }
+
+    public function storage()
+    {
+        return $this->belongsTo(Storage::class, 'storage_id');
     }
 
     public function storageManagement()

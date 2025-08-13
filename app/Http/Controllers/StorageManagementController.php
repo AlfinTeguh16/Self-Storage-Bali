@@ -17,16 +17,22 @@ class StorageManagementController extends Controller
      */
     public function index()
     {
-        // $managements = StorageManagement::with(['storage', 'booking'])
-        //     ->where('is_deleted', false)
-        //     ->latest()
-        //     ->get();
-        $storages = \App\Models\Storage::with(['storageManagement.booking'])
+        $storages = \App\Models\Storage::with([
+            'storageManagement' => function ($query) {
+                $query->orderBy('id', 'desc'); // Ambil yang terbaru di index 0
+            },
+            'storageManagement.booking'
+        ])
             ->where('is_deleted', false)
             ->orderBy('size')
             ->orderBy('id')
             ->get()
+            ->map(function ($storage) {
+                $storage->description = \Illuminate\Support\Str::limit($storage->description, 100); // kira-kira 2 baris
+                return $storage;
+            })
             ->groupBy('size');
+
 
             // return response()->json([
             //     'status' => 'success',
@@ -137,7 +143,7 @@ class StorageManagementController extends Controller
             $validated = $request->validate([
                 'last_clean' => 'required|date',
             ]);
-            dd($validated);
+            // dd($validated);
 
             $management->update($validated);
 

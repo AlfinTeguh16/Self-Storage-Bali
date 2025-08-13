@@ -9,6 +9,8 @@ use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\StorageManagementController;
 use App\Http\Controllers\StorageUnitController;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\PaymentEmail;
 
 // ====================== Home & Auth ======================
 Route::get('/', fn() => view('home'))->name('homepage');
@@ -84,4 +86,14 @@ Route::prefix('storage-management')->name('storage-management.')->middleware(['a
     Route::delete('{management}', [StorageManagementController::class, 'destroy'])->name('destroy');
     Route::get('{management}', [StorageManagementController::class, 'show'])->name('show');
     Route::put('{management}/last-clean', [StorageManagementController::class, 'lastClean'])->name('last-clean');
+});
+
+Route::post('midtrans-notification', [MidtransController::class, 'notification']);
+
+
+
+Route::get('/send-test-email', function () {
+    $paymentUrl = 'http://localhost:8120/payment-link';  // Ganti dengan URL pembayaran yang sesuai
+    Mail::to('alfintegu16@gmail.com')->send(new PaymentEmail($paymentUrl));
+    return 'Test email sent!';
 });
