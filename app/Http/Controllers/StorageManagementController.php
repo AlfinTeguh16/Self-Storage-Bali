@@ -152,4 +152,32 @@ class StorageManagementController extends Controller
             return redirect()->back()->withErrors($e->getMessage())->withInput();
         }
     }
+
+    public function autoUpdateStatusStorage()
+    {
+        try {
+            $today = now()->toDateString();
+
+            $affected = DB::table('tb_storage_management as sm')
+                ->join('tb_bookings as b', 'b.id', '=', 'sm.booking_id')
+                ->where('sm.is_deleted', 0)
+                ->where('sm.status', 'booked')
+                ->where('b.is_deleted', 0)
+                ->whereDate('b.end_date', '<', $today) // sudah lewat dari hari ini
+                ->update([
+                    'sm.status'     => 'available',
+                    'sm.booking_id' => null,
+                    'sm.updated_at' => now(),
+                ]);
+
+            Log::info('Auto update storage: done', ['affected' => $affected, 'date' => $today]);
+
+            return redirect()
+                ->route('storage-management.index')
+                ->with('success', "Storage status updated: {$affected} item(s).");
+        } catch (\Throwable $e) {
+            Log::error('Auto update storage: failed', ['error' => $e->getMessage()]);
+            return back()->withErrors($e->getMessage());
+        }
+    }
 }
