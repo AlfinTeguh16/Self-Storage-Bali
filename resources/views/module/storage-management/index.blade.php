@@ -70,7 +70,7 @@
                     x-transition.opacity
                     @keydown.escape.window="open = false; document.documentElement.classList.remove('overflow-hidden')"
                     @click.self="open = false; document.documentElement.classList.remove('overflow-hidden')"
-                    class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+                    class="fixed inset-0 z-50 flex items-center justify-center p-4"
                     aria-modal="true"
                     role="dialog"
                 >

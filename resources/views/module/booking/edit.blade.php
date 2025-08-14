@@ -68,7 +68,7 @@
 
         {{-- Tombol --}}
         <div class="flex flex-row justify-end mt-4">
-            <x-button variant="neutral" onclick="window.location='{{ route('data-booking.index') }}'" class="mx-3">Batal</x-button>
+            <x-button variant="neutral" type="button" onclick="window.location='{{ route('data-booking.index') }}'" class="mx-3">Batal</x-button>
             <x-button variant="primary" type="submit">Update</x-button>
         </div>
     </form>

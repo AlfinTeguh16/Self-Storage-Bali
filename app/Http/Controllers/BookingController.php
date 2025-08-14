@@ -257,9 +257,11 @@ class BookingController extends Controller
      */
     public function show($id)
     {
-        $booking = Booking::with('customer')
+        $booking = Booking::with(['customer','storage'])
             ->where('is_deleted', false)
             ->findOrFail($id);
+
+
 
         return view('module.booking.show', compact('booking'));
     }
