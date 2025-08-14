@@ -68,12 +68,10 @@ Route::prefix('data-customer')->name('data-customer.')->middleware(['auth', 'rol
 // ====================== Data Payment ======================
 Route::prefix('data-payment')->name('data-payment.')->middleware(['auth', 'role:admin'])->group(function () {
     Route::get('/', [PaymentController::class, 'index'])->name('index');
-    Route::get('create', [PaymentController::class, 'create'])->name('create');
-    Route::post('/', [PaymentController::class, 'store'])->name('store');
-    Route::get('{payment}/edit', [PaymentController::class, 'edit'])->name('edit');
-    Route::put('{payment}', [PaymentController::class, 'update'])->name('update');
-    Route::delete('{payment}', [PaymentController::class, 'destroy'])->name('destroy');
     Route::get('{payment}', [PaymentController::class, 'show'])->name('show');
+    Route::get('/payment/{id}/payment', [PaymentController::class, 'showPayment'])->name('payment');
+    Route::post('/payment/{id}/payment/refresh', [PaymentController::class, 'refreshStatus'])->name('refresh-status');
+    // Route::post('{id}', [PaymentController::class, 'refreshStatus'])->name('data-payment.refresh-status');
 });
 
 // ====================== Storage Management ======================
@@ -92,8 +90,8 @@ Route::post('midtrans-notification', [MidtransController::class, 'notification']
 
 
 
-Route::get('/send-test-email', function () {
-    $paymentUrl = 'http://localhost:8120/payment-link';  // Ganti dengan URL pembayaran yang sesuai
-    Mail::to('alfintegu16@gmail.com')->send(new PaymentEmail($paymentUrl));
-    return 'Test email sent!';
-});
+// Route::get('/send-test-email', function () {
+//     $paymentUrl = 'http://localhost:8120/payment-link';  // Ganti dengan URL pembayaran yang sesuai
+//     Mail::to('alfintegu16@gmail.com')->send(new PaymentEmail($paymentUrl));
+//     return 'Test email sent!';
+// });

@@ -2,20 +2,20 @@
 
 namespace App\Http\Controllers;
 
-
-use Illuminate\Support\Facades\Mail;
-use App\Mail\PaymentEmail;
-use App\Models\Booking;
-use App\Models\Customer;
-use App\Models\Storage;
-use App\Models\StorageManagement;
-use Illuminate\Http\Request;
-use Illuminate\Support\Str;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
 use Midtrans\Config;
 use Midtrans\Snap;
 use Midtrans\Transaction;
+use App\Models\Booking;
+use App\Models\Storage;
+use App\Models\Customer;
+use App\Mail\PaymentEmail;
+use Illuminate\Http\Request;
+use Illuminate\Support\Str;
+use App\Models\StorageManagement;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Schema;
 
 class BookingController extends Controller
 {
@@ -85,7 +85,6 @@ class BookingController extends Controller
             // 2) Transaksi DB: kunci SM, buat booking, tandai booked
             DB::beginTransaction();
 
-            // Lock baris SM untuk hindari double-book
             /** @var \App\Models\StorageManagement $sm */
             $sm = StorageManagement::where('id', $validated['sm_id'])
                 ->where('is_deleted', 0)
@@ -102,7 +101,7 @@ class BookingController extends Controller
             /** @var \App\Models\Booking $booking */
             $booking = Booking::create([
                 'customer_id' => $validated['customer_id'],
-                'storage_id'  => $sm->storage_id,  // ambil dari SM
+                'storage_id'  => $sm->storage_id,
                 'booking_ref' => $bookingRef,
                 'start_date'  => $validated['start_date'],
                 'end_date'    => $validated['end_date'],
@@ -121,11 +120,11 @@ class BookingController extends Controller
             Log::info('Booking created', ['booking_id' => $booking->id, 'booking_ref' => $booking->booking_ref]);
             Log::info('Storage management updated to booked', ['sm_id' => $sm->id, 'storage_id' => $sm->storage_id]);
 
-            // 3) Panggil Midtrans (setelah commit, agar transaksi DB tidak lama tertahan)
+            // 3) Panggil Midtrans (setelah commit)
             $customer = Customer::findOrFail($validated['customer_id']);
             $amount   = $this->calculateTotalAmount($booking->storage_id);
 
-            // Midtrans config (pakai Config & Snap)
+            // Midtrans config
             Config::$serverKey    = env('MIDTRANS_SERVER_KEY');
             Config::$isProduction = filter_var(env('MIDTRANS_IS_PRODUCTION', false), FILTER_VALIDATE_BOOLEAN);
             Config::$isSanitized  = true;
@@ -155,13 +154,42 @@ class BookingController extends Controller
                     'redirect_url' => $paymentUrl,
                 ]);
 
-                // 4) Kirim email link pembayaran
+                /**
+                 * 4) BUAT DATA DI tb_payments
+                 *    Minimal isi: customer_id, method. Sisipkan kolom lain jika tersedia.
+                 *    Menggunakan raw insert supaya tidak tergantung $fillable.
+                 */
+                $paymentData = [
+                    'customer_id' => $customer->id,
+                    'method'      => 'midtrans',
+                    'is_deleted'  => 0,
+                    'created_at'  => now(),
+                    'updated_at'  => now(),
+                ];
+
+                // Opsional: linkkan jika kolom ada
+                if (Schema::hasColumn('tb_payments', 'booking_id')) {
+                    $paymentData['booking_id'] = $booking->id;
+                }
+                if (Schema::hasColumn('tb_payments', 'status')) {
+                    $paymentData['status'] = 'pending';
+                }
+                if (Schema::hasColumn('tb_payments', 'payment_url')) {
+                    $paymentData['payment_url'] = $paymentUrl;
+                }
+                if (Schema::hasColumn('tb_payments', 'midtrans_order_id')) {
+                    $paymentData['midtrans_order_id'] = $booking->booking_ref;
+                }
+
+                DB::table('tb_payments')->insert($paymentData);
+                Log::info('Payment row created', ['booking_id' => $booking->id, 'customer_id' => $customer->id]);
+
+                // 5) Kirim email link pembayaran
                 try {
                     Log::info('Sending payment email', ['email' => $customer->email]);
-                    Mail::to($customer->email)->send(new PaymentEmail($paymentUrl));
+                    Mail::to($customer->email)->send(new \App\Mail\PaymentEmail($paymentUrl));
                     Log::info('Payment email sent successfully');
                 } catch (\Throwable $mailEx) {
-                    // Catat saja; booking tetap pending & SM sudah booked
                     Log::error('Failed to send payment email', ['error' => $mailEx->getMessage()]);
                 }
 
@@ -196,6 +224,7 @@ class BookingController extends Controller
             return back()->withErrors($e->getMessage())->withInput();
         }
     }
+
 
 
 

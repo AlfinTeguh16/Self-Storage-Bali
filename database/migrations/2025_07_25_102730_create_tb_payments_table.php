@@ -13,12 +13,27 @@ return new class extends Migration
     {
         Schema::create('tb_payments', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('customer_id')->constrained('tb_customers')->onDelete('cascade');
-            $table->string('method')->nullable();
-            $table->text('transaction_file')->nullable();
-            $table->boolean('is_deleted')->default(false);
-            $table->timestamps();
-        });
+
+                $table->foreignId('customer_id')
+                    ->constrained('tb_customers')
+                    ->onDelete('cascade');
+
+                // booking_id boleh null (belum ada link saat awal)
+                $table->foreignId('booking_id')
+                    ->nullable()
+                    ->constrained('tb_bookings')
+                    ->onDelete('cascade');
+
+                $table->string('method')->nullable();
+                $table->string('status', 20)->default('pending');
+                $table->text('transaction_file')->nullable();
+                $table->text('payment_url')->nullable();
+                $table->string('midtrans_order_id')->nullable();
+
+                $table->boolean('is_deleted')->default(false);
+                $table->timestamps();
+            });
+
     }
 
     /**
