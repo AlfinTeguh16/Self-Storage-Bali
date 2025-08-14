@@ -93,7 +93,7 @@ class BookingController extends Controller
 
             if ($sm->status !== 'available' || !is_null($sm->booking_id)) {
                 DB::rollBack();
-                throw new \Exception('Storage sudah tidak tersedia, silakan pilih yang lain.');
+                throw new \Exception('Storage already exists, choose another one.');
             }
 
             $bookingRef = $this->generateBookingRef();
@@ -146,7 +146,7 @@ class BookingController extends Controller
                 $paymentUrl = $tx->redirect_url ?? null;
 
                 if (!$paymentUrl) {
-                    throw new \Exception('Midtrans tidak mengembalikan redirect_url.');
+                    throw new \Exception('Midtrans did not return redirect_url.');
                 }
 
                 Log::info('Midtrans transaction created', [
@@ -209,12 +209,12 @@ class BookingController extends Controller
                     Log::error('Failed to revert after Midtrans failure', ['error' => $revertEx->getMessage()]);
                 }
 
-                return back()->withErrors('Gagal membuat transaksi pembayaran: '.$midEx->getMessage())->withInput();
+                return back()->withErrors('Failed to create payment transaction: '.$midEx->getMessage())->withInput();
             }
 
             return redirect()
                 ->route('data-booking.index')
-                ->with('success', 'Booking created successfully. Link pembayaran telah dikirim ke email pelanggan.');
+                ->with('success', 'Booking created successfully. Payment link has been sent to the customer\'s email.');
 
         } catch (\Throwable $e) {
             if (DB::transactionLevel() > 0) {
