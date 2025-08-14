@@ -16,6 +16,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 class BookingController extends Controller
 {
@@ -429,12 +430,29 @@ class BookingController extends Controller
     public function destroy($id)
     {
         try {
-            $booking = Booking::where('is_deleted', false)->findOrFail($id);
-            $booking->update(['is_deleted' => true]);
+            DB::transaction(function () use ($id) {
+                // Kunci row booking biar aman dari race condition
+                $booking = Booking::where('is_deleted', false)
+                    ->lockForUpdate()
+                    ->findOrFail($id);
 
-            return redirect()->route('data-booking.index')->with('success', 'Booking deleted successfully.');
-        } catch (\Exception $e) {
-            return redirect()->back()->withErrors($e->getMessage());
+                // Tandai booking "deleted" (pakai flag)
+                $booking->update(['is_deleted' => true]);
+
+                // Update SEMUA storage management terkait jadi available
+                // (batasi hanya yang bukan 'available' supaya hemat write)
+                $booking->storageManagement()
+                    ->where('status', '!=', 'available')
+                    ->update(['status' => 'available']);
+            });
+
+            return redirect()
+                ->route('data-booking.index')
+                ->with('success', 'Booking dihapus dan semua storage terkait diset available.');
+        } catch (ModelNotFoundException $e) {
+            return redirect()->back()->withErrors('Booking tidak ditemukan atau sudah dihapus.');
+        } catch (\Throwable $e) {
+            return redirect()->back()->withErrors('Terjadi kesalahan: '.$e->getMessage());
         }
     }
 }

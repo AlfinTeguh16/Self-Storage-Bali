@@ -18,6 +18,7 @@ class Booking extends Model
     protected $casts = [
         'start_date' => 'date',
         'end_date' => 'date',
+        'is_deleted' => 'boolean',
     ];
 
 
@@ -34,6 +35,11 @@ class Booking extends Model
     public function storageManagement()
     {
         return $this->hasMany(StorageManagement::class, 'booking_id');
+    }
+
+    public function scopeNotDeleted($q)
+    {
+        return $q->where('is_deleted', false);
     }
 
     public $timestamps = true;
