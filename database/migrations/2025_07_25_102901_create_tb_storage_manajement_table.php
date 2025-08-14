@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('tb_storage_management', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('storage_id')->constrained('tb_storages')->onDelete('cascade');
+            $table->foreignId('storage_id')->constrained('tb_storages')->onDelete('cascade')->nullable();
             $table->foreignId('booking_id')->constrained('tb_bookings')->onDelete('cascade')->nullable();
             $table->enum('status', ['available', 'booked', 'maintenance', 'cleaning'])->default('available');
             $table->date('last_clean')->nullable();
