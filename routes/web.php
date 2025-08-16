@@ -13,7 +13,11 @@ use Illuminate\Support\Facades\Mail;
 use App\Mail\PaymentEmail;
 
 // ====================== Home & Auth ======================
-Route::get('/', fn() => view('home'))->name('homepage');
+Route::get('/', fn() => view('pages.home'))->name('homepage');
+Route::get('/about', fn() => view('pages.about'))->name('about');
+Route::get('/units-pricing', fn() => view('pages.unit'))->name('units.pricing');
+Route::get('/faq', fn() => view('pages.faq'))->name('faq');
+Route::get('/contact', fn() => view('pages.contact'))->name('contact');
 
 Route::middleware('guest')->group(function () {
     Route::view('/login', 'auth.login')->name('auth.login');

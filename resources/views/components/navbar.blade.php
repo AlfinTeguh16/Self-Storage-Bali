@@ -17,10 +17,11 @@
     <!-- Menu List -->
    <div id="menu" class="w-full md:flex md:items-center md:space-x-4 md:w-auto hidden mt-4 md:mt-0">
       <ul class="flex flex-col md:flex-row md:space-x-4 space-y-2 md:space-y-0">
-        <li><a href="#" class="text-orange-900 font-bold">Home</a></li>
-        <li><a href="#" class="text-orange-900 font-bold">About</a></li>
-        <li><a href="#" class="text-orange-900 font-bold">Services</a></li>
-        <li><a href="#" class="text-orange-900 font-bold">Contact</a></li>
+        <li><a href="/" class="text-orange-900 font-bold">Home</a></li>
+        <li><a href="about" class="text-orange-900 font-bold">About</a></li>
+        <li><a href="units-pricing" class="text-orange-900 font-bold">Units & Pricing</a></li>
+        <li><a href="faq" class="text-orange-900 font-bold">FAQ</a></li>
+        <li><a href="contact" class="text-orange-900 font-bold">Contact</a></li>
         <li><a href="{{ route('auth.login') }}" class="text-orange-900 font-bold">Login</a></li>
 
       </ul>

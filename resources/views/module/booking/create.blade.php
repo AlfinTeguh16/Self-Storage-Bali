@@ -83,7 +83,7 @@ class="absolute inset-0 z-50  items-center justify-center  hidden h-[90vh]">
                 <x-form name="email" label="Email" type="email" required="true" />
                 <x-form name="phone" label="Phone" type="text" required="true" />
                 <x-form name="address" label="Address" type="text" required="true" />
-                <x-form name="credential" label="Credential" type="file" required="true" />
+                <x-form name="credential" label="Credential (ID, Passport, KTP, SIM, etc.)" type="file" required="true" />
                 <div class="flex justify-end gap-2 mt-4">
                     <x-button type="button" onclick="closeCustomerModal()">Cancel</x-button>
                     <x-button type="submit">Add Customer</x-button>

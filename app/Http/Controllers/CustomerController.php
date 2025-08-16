@@ -84,6 +84,11 @@ class CustomerController extends Controller
     public function show($id)
     {
         $customer = Customer::where('is_deleted', false)->findOrFail($id);
+        $customer->load(['bookings', 'payments']);
+
+        // return response()->json([
+        //     'customer' => $customer
+        // ]);
         return view('module.customer.show', compact('customer'));
     }
 
