@@ -443,7 +443,10 @@ class BookingController extends Controller
                 // (batasi hanya yang bukan 'available' supaya hemat write)
                 $booking->storageManagement()
                     ->where('status', '!=', 'available')
-                    ->update(['status' => 'available']);
+                    ->update([
+                        'status' => 'available',
+                        'booking_id' => null
+                    ]);
             });
 
             return redirect()
