@@ -61,14 +61,14 @@
         <section class="py-16 bg-gray-50">
         <div class="container mx-auto px-4">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <img src="{{ asset('img/about.jpg') }}" class="w-full h-72 object-cover rounded-2xl border border-gray-200" alt="Facility">
+            <img src="{{ asset('img/cctv.jpg') }}" class="w-full h-72 object-cover rounded-2xl border border-gray-200" alt="Facility">
             <div>
                 <h2 class="text-2xl font-semibold">Secure facility, friendly team</h2>
                 <p class="mt-3 text-gray-600">
                 We use CCTV, controlled access, and standardized procedures to protect your items.
                 Our team is ready to assist—from choosing the right unit to move-in support.
                 </p>
-                <a href="{{ route('contact.create') }}" class="inline-flex mt-6 px-5 py-2.5 rounded-xl bg-orange-600 text-white hover:bg-orange-700">Contact Us</a>
+                <a href="{{ route('contact.index') }}" class="inline-flex mt-6 px-5 py-2.5 rounded-xl bg-orange-600 text-white hover:bg-orange-700">Contact Us</a>
             </div>
             </div>
         </div>

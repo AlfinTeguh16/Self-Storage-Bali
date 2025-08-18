@@ -41,26 +41,26 @@
                 @csrf
                 <div>
                 <label class="text-sm text-gray-600">Name</label>
-                <input name="name" value="{{ old('name') }}" class="mt-1 w-full rounded-lg border-gray-300" required>
+                <input name="name" value="{{ old('name') }}" class="mt-1 w-full rounded-lg border-gray-300 border-2" required>
                 @error('name')<div class="text-xs text-red-600 mt-1">{{ $message }}</div>@enderror
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                     <label class="text-sm text-gray-600">Email</label>
-                    <input type="email" name="email" value="{{ old('email') }}" class="mt-1 w-full rounded-lg border-gray-300" required>
+                    <input type="email" name="email" value="{{ old('email') }}" class="mt-1 w-full rounded-lg border-gray-300 border-2" required>
                     @error('email')<div class="text-xs text-red-600 mt-1">{{ $message }}</div>@enderror
                 </div>
                 <div>
                     <label class="text-sm text-gray-600">Phone (optional)</label>
-                    <input name="phone" value="{{ old('phone') }}" class="mt-1 w-full rounded-lg border-gray-300">
+                    <input name="phone" value="{{ old('phone') }}" class="mt-1 w-full rounded-lg border-gray-300 border-2">
                     @error('phone')<div class="text-xs text-red-600 mt-1">{{ $message }}</div>@enderror
                 </div>
                 </div>
 
                 <div>
                 <label class="text-sm text-gray-600">Message</label>
-                <textarea name="message" rows="5" class="mt-1 w-full rounded-lg border-gray-300" required>{{ old('message') }}</textarea>
+                <textarea name="message" rows="5" class="mt-1 w-full rounded-lg border-gray-300 border-2" required>{{ old('message') }}</textarea>
                 @error('message')<div class="text-xs text-red-600 mt-1">{{ $message }}</div>@enderror
                 </div>
 
@@ -71,14 +71,25 @@
             </div>
 
             <div class="bg-white border border-gray-200 rounded-2xl p-6">
-            <h3 class="font-semibold">Our Office</h3>
-            <p class="mt-2 text-sm text-gray-600">Denpasar, Bali — Indonesia</p>
-            <p class="mt-1 text-sm text-gray-600">Email: info@selfstoragebali.com</p>
-            <p class="mt-1 text-sm text-gray-600">Phone: +62 812 3456 7890</p>
+                <div>
+                    <h3 class="font-semibold">Our Office</h3>
+                    <p class="mt-2 text-sm text-gray-600">Ubud, Bali — Indonesia</p>
+                    <p class="mt-1 text-sm text-gray-600">Email: info@selfstoragebali.com</p>
+                    <p class="mt-1 text-sm text-gray-600">Phone: +62 812 3456 7890</p>
+                </div>
+                <div>
+                    <h3 class="font-semibold">Our Office</h3>
+                    <p class="mt-2 text-sm text-gray-600">Denpasar, Bali — Indonesia</p>
+                    <p class="mt-1 text-sm text-gray-600">Email: info@selfstoragebali.com</p>
+                    <p class="mt-1 text-sm text-gray-600">Phone: +62 812 3456 7890</p>
+                </div>
+                <div>
+                    <h3 class="font-semibold">Our Office</h3>
+                    <p class="mt-2 text-sm text-gray-600">Padang Bai, Bali — Indonesia</p>
+                    <p class="mt-1 text-sm text-gray-600">Email: info@selfstoragebali.com</p>
+                    <p class="mt-1 text-sm text-gray-600">Phone: +62 812 3456 7890</p>
+                </div>
 
-            <div class="mt-6">
-                <img src="{{ asset('img/map.jpg') }}" alt="Map" class="w-full h-56 object-cover rounded-xl border border-gray-200">
-            </div>
             </div>
         </div>
         </section>

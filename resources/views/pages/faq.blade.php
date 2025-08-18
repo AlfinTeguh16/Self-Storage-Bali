@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="en">
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
@@ -7,8 +7,8 @@
     <title>Self Storage Bali</title>
 
     {{-- SEO basics --}}
-    <meta name="description" content="Self Storage Bali — solusi penyimpanan aman dan fleksibel sejak 2023. Sewa ruang mulai dari ukuran kecil hingga besar, harian hingga bulanan.">
-    <meta name="keywords" content="self storage bali, sewa gudang bali, penyimpanan barang bali">
+    <meta name="description" content="Self Storage Bali — secure and flexible storage solutions since 2023. Rent spaces from small to large, daily to monthly.">
+    <meta name="keywords" content="self storage bali, warehouse rental bali, storage bali">
 
     @vite('resources/css/app.css')
     <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.2/src/bold/style.css"/>
@@ -51,7 +51,7 @@
     </div>
 
     <div class="mt-10 text-center">
-        <a href="{{ route('contact.create') }}" class="inline-flex items-center px-6 py-3 rounded-xl bg-orange-600 text-white hover:bg-orange-700">
+        <a href="{{ route('contact.index') }}" class="inline-flex items-center px-6 py-3 rounded-xl bg-orange-600 text-white hover:bg-orange-700">
         Still need help? Contact us
         </a>
     </div>
@@ -63,16 +63,16 @@
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div>
             <div class="text-lg font-semibold">Self Storage Bali</div>
-            <p class="mt-2 text-sm text-gray-600">Solusi penyimpanan aman, fleksibel, dan terjangkau di Bali.</p>
+            <p class="mt-2 text-sm text-gray-600">Secure, flexible, and affordable storage solutions in Bali.</p>
           </div>
           <div>
-            <div class="text-sm font-semibold text-gray-700">Alamat</div>
+            <div class="text-sm font-semibold text-gray-700">Address</div>
             <p class="mt-2 text-sm text-gray-600 flex items-start gap-2">
               <i class="ph-bold ph-map-pin-line mt-0.5"></i> Denpasar, Bali — Indonesia
             </p>
           </div>
           <div>
-            <div class="text-sm font-semibold text-gray-700">Kontak</div>
+            <div class="text-sm font-semibold text-gray-700">Contact</div>
             <p class="mt-2 text-sm text-gray-600 flex items-center gap-2">
               <i class="ph-bold ph-envelope"></i> info@selfstoragebali.com
             </p>

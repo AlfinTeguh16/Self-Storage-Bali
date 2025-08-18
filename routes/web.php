@@ -9,6 +9,7 @@ use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\StorageManagementController;
 use App\Http\Controllers\StorageUnitController;
+use App\Http\Controllers\ContactController;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\PaymentEmail;
 
@@ -17,7 +18,8 @@ Route::get('/', fn() => view('pages.home'))->name('homepage');
 Route::get('/about', fn() => view('pages.about'))->name('about');
 Route::get('/units-pricing', fn() => view('pages.unit'))->name('units.pricing');
 Route::get('/faq', fn() => view('pages.faq'))->name('faq');
-Route::get('/contact', fn() => view('pages.contact'))->name('contact');
+Route::get('/contact', [ContactController::class, 'index'])->name('contact.index');
+Route::post('/contact', [ContactController::class, 'store'])->name('contact.store');
 
 Route::middleware('guest')->group(function () {
     Route::view('/login', 'auth.login')->name('auth.login');
