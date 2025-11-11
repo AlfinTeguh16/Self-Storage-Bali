@@ -21,6 +21,7 @@
         <li><a href="about" class="text-orange-900 font-bold">About</a></li>
         <li><a href="units-pricing" class="text-orange-900 font-bold">Units & Pricing</a></li>
         <li><a href="faq" class="text-orange-900 font-bold">FAQ</a></li>
+        <li><a href="booking" class="text-orange-900 font-bold">Booking</a></li>
         <li><a href="contact" class="text-orange-900 font-bold">Contact</a></li>
         <li><a href="{{ route('auth.login') }}" class="text-orange-900 font-bold">Login</a></li>
 

@@ -23,6 +23,8 @@ return new class extends Migration
             $table->string('booking_ref')->unique();
             $table->date('start_date');
             $table->date('end_date');
+            $table->integer('total_date');
+            $table->float('total_price');
             $table->text('notes')->nullable();
             $table->enum('status', ['success', 'pending', 'failed'])->default('pending');
             $table->boolean('is_deleted')->default(false);

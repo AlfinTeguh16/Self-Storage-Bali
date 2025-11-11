@@ -7,6 +7,7 @@ use App\Models\Customer;
 use Illuminate\Validation\Rule;
 use App\Models\Storage;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Validation\ValidationException;
 
 
 class CustomerController extends Controller

@@ -1,6 +1,8 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Auth;
+use App\Models\User;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\StorageController;
@@ -10,6 +12,8 @@ use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\StorageManagementController;
 use App\Http\Controllers\StorageUnitController;
 use App\Http\Controllers\ContactController;
+use App\Http\Controllers\MidtransController;
+use App\Http\Controllers\NonAuthController;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\PaymentEmail;
 
@@ -18,8 +22,13 @@ Route::get('/', fn() => view('pages.home'))->name('homepage');
 Route::get('/about', fn() => view('pages.about'))->name('about');
 Route::get('/units-pricing', fn() => view('pages.unit'))->name('units.pricing');
 Route::get('/faq', fn() => view('pages.faq'))->name('faq');
+// Route::get('/booking', fn() => view('pages.customer-booking'))->name('booking');
 Route::get('/contact', [ContactController::class, 'index'])->name('contact.index');
 Route::post('/contact', [ContactController::class, 'store'])->name('contact.store');
+Route::get('/online-booking', [NonAuthController::class, 'showBookingForm'])->name('online.booking.form');
+Route::post('/online-booking', [NonAuthController::class, 'onlineBooking'])->name('online.booking');
+Route::get('/booking', [NonAuthController::class, 'showAvailableStorage'])->name('show.storage');
+Route::get('/booking-success', [NonAuthController::class, 'onlineBooking'])->name('booking.success');
 
 Route::middleware('guest')->group(function () {
     Route::view('/login', 'auth.login')->name('auth.login');
@@ -30,7 +39,7 @@ Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth')->n
 
 // ====================== Dashboard ======================
 Route::middleware('auth')->get('/dashboard', function () {
-    return match(auth()->user()->akses) {
+    return match(Auth::User()->akses) {
         'admin' => redirect()->route('dashboard.admin'),
         default => abort(403),
     };

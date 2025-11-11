@@ -11,9 +11,7 @@ class Booking extends Model
 
     protected $table = 'tb_bookings';
 
-    protected $fillable = [
-        'customer_id', 'storage_id', 'booking_ref', 'start_date', 'end_date', 'notes', 'is_deleted',
-    ];
+    protected $fillable = ['customer_id','storage_id', 'booking_ref', 'start_date','end_date', 'total_date','total_price','status'];
 
     protected $casts = [
         'start_date' => 'date',

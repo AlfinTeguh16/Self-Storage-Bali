@@ -1,5 +1,7 @@
 <?php
 
+namespace App\Http\Controllers;
+
 use Midtrans\Midtrans;
 use Midtrans\Transaction;
 use Midtrans\Notification;

@@ -188,7 +188,7 @@ class BookingController extends Controller
                 // 5) Kirim email link pembayaran
                 try {
                     Log::info('Sending payment email', ['email' => $customer->email]);
-                    Mail::to($customer->email)->send(new \App\Mail\PaymentEmail($paymentUrl));
+                    Mail::to($customer->email)->send(new PaymentEmail($paymentUrl));
                     Log::info('Payment email sent successfully');
                 } catch (\Throwable $mailEx) {
                     Log::error('Failed to send payment email', ['error' => $mailEx->getMessage()]);

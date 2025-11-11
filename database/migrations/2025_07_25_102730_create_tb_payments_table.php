@@ -18,7 +18,7 @@ return new class extends Migration
                     ->constrained('tb_customers')
                     ->onDelete('cascade');
 
-                // booking_id boleh null (belum ada link saat awal)
+
                 $table->foreignId('booking_id')
                     ->nullable()
                     ->constrained('tb_bookings')

@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Redirect;
+use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
 
 class AuthController extends Controller
 {
@@ -16,10 +17,10 @@ class AuthController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function login(Request $request)
+    public function login(Request $request): SymfonyResponse
     {
         $request->validate([
-            'username'     => 'required|string',
+            'username' => 'required|string',
             'password' => 'required|string',
         ]);
 
@@ -27,16 +28,18 @@ class AuthController extends Controller
         $user = User::where('username', $request->username)->first();
 
         if (! $user || ! Hash::check($request->password, $user->password)) {
+            // back() mengembalikan RedirectResponse yang subclass Symfony Response
             return back()->withErrors(['username' => 'Username atau password salah'])->withInput();
         }
 
         Auth::login($user, $request->boolean('remember'));
 
-        return match($user->role) {
-            'admin' => redirect()->route('dashboard.admin'),
-            default    => redirect()->route('auth.login')->with('error', 'Akses tidak dikenali'),
+        return match ($user->role) {
+            'admin'   => redirect()->route('dashboard.admin'),
+            default   => redirect()->route('auth.login')->with('error', 'Akses tidak dikenali'),
         };
-    }
+}
+
 
     /**
      * Menangani proses logout.
@@ -44,13 +47,13 @@ class AuthController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function logout(Request $request)
+    public function logout(Request $request): SymfonyResponse
     {
         Auth::logout();
 
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        return redirect()->route('auth.login');
+        return redirect()->route('auth.login')->with('success', 'Berhasil logout.');
     }
 }
