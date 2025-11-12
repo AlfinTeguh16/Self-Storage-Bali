@@ -216,12 +216,13 @@ class NonAuthController extends Controller
                 }
 
                 // Kembalikan JSON sukses dengan link pembayaran
-                return response()->json([
-                    'message' => 'Booking berhasil dibuat. Silakan lanjut ke pembayaran.',
-                    'booking_id' => $bookingModel->id,
-                    'booking_ref' => $bookingModel->booking_ref,
-                    'payment_url' => $paymentUrl,
-                ], 201);
+                // return response()->json([
+                //     'message' => 'Booking berhasil dibuat. Silakan lanjut ke pembayaran.',
+                //     'booking_id' => $bookingModel->id,
+                //     'booking_ref' => $bookingModel->booking_ref,
+                //     'payment_url' => $paymentUrl,
+                // ], 201);
+                return redirect()->route('booking.success', ['bookingId' => $bookingModel->id]);
 
             } catch (\Throwable $midEx) {
                 Log::error('Midtrans createTransaction failed (onlineBooking): '.$midEx->getMessage());
@@ -246,6 +247,7 @@ class NonAuthController extends Controller
                 return response()->json([
                     'message' => 'Gagal membuat transaksi pembayaran: ' . $midEx->getMessage()
                 ], 500);
+                
             }
         } catch (\Throwable $e) {
             Log::error('Error in onlineBooking: ' . $e->getMessage(), ['trace' => $e->getTraceAsString()]);

@@ -28,7 +28,7 @@ Route::post('/contact', [ContactController::class, 'store'])->name('contact.stor
 Route::get('/online-booking', [NonAuthController::class, 'showBookingForm'])->name('online.booking.form');
 Route::post('/online-booking', [NonAuthController::class, 'onlineBooking'])->name('online.booking');
 Route::get('/booking', [NonAuthController::class, 'showAvailableStorage'])->name('show.storage');
-Route::get('/booking-success', [NonAuthController::class, 'onlineBooking'])->name('booking.success');
+Route::get('/booking-success/{bookingId}', [NonAuthController::class, 'bookingSuccess'])->name('booking.success');
 
 Route::middleware('guest')->group(function () {
     Route::view('/login', 'auth.login')->name('auth.login');

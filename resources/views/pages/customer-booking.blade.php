@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="en">
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
@@ -7,8 +7,8 @@
     <title>Booking — Self Storage Bali</title>
 
     {{-- SEO --}}
-    <meta name="description" content="Booking storage online cepat & aman. Simpan barang fleksibel harian/bulanan di Bali.">
-    <meta name="keywords" content="booking storage bali, sewa gudang online, self storage denpasar">
+    <meta name="description" content="Fast & secure online storage booking. Flexible daily/monthly storage solutions in Bali.">
+    <meta name="keywords" content="storage booking bali, rent warehouse online, self storage denpasar">
 
     @vite('resources/css/app.css')
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.2/src/duotone/style.css">
@@ -16,7 +16,7 @@
 
     <style>
         :root {
-            --primary: #1e40af; /* biru tua — profesional & tepercaya */
+            --primary: #1e40af; /* dark blue — professional & trustworthy */
             --primary-light: #3b82f6;
             --success: #10b981;
             --warning: #f59e0b;
@@ -75,29 +75,29 @@
 
     <main class="pb-20">
         <!-- Hero -->
-        <section class="bg-gradient-to-br from-[#F64900] to-[#F64900] text-white pt-16 pb-20">
+        <section class="bg-[#F64900] text-white pt-16 pb-20">
             <div class="container mx-auto px-4 text-center max-w-3xl">
                 <div class="inline-flex items-center gap-2 bg-[#b43803] backdrop-blur-sm px-4 py-1.5 rounded-full mb-6">
                     <i class="ph-duotone ph-box text-lg"></i>
                     <span class="font-medium">Self Storage Bali</span>
                 </div>
-                <h1 class="text-3xl md:text-4xl font-bold mb-4">Booking Storage Online</h1>
+                <h1 class="text-3xl md:text-4xl font-bold mb-4">Online Storage Booking</h1>
                 <p class="text-lg md:text-xl opacity-90 max-w-2xl mx-auto">
-                    Proses cepat, aman, dan transparan. Simpan barang dalam 2 menit — tanpa ribet.
+                    Fast, secure, and transparent process. Store your items in 2 minutes — hassle-free.
                 </p>
                 <div class="mt-8 flex justify-center">
                     <div class="flex items-center gap-6 text-sm md:text-base">
                         <div class="flex items-center gap-2">
                             <i class="ph-duotone ph-check-circle text-green-300 text-lg"></i>
-                            <span>Konfirmasi Instan</span>
+                            <span>Instant Confirmation</span>
                         </div>
                         <div class="flex items-center gap-2">
                             <i class="ph-duotone ph-lock text-blue-200 text-lg"></i>
-                            <span>Keamanan 24/7</span>
+                            <span>24/7 Security</span>
                         </div>
                         <div class="flex items-center gap-2">
                             <i class="ph-duotone ph-clock-counter-clockwise text-amber-200 text-lg"></i>
-                            <span>Akses Fleksibel</span>
+                            <span>Flexible Access</span>
                         </div>
                     </div>
                 </div>
@@ -108,33 +108,31 @@
         <section class="py-8 md:py-12 mt-12 px-4">
             <div class="container mx-auto max-w-5xl">
                 <div class="bg-white rounded-2xl card-shadow overflow-hidden">
-                   
-
                     <div class="p-6 md:p-8">
                         <form action="{{ route('online.booking') }}" method="POST" id="booking-form">
                             @csrf
 
                             <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                                <!-- Kolom Kiri: Data Diri -->
+                                <!-- Left Column: Personal Information -->
                                 <div>
                                     <div class="mb-8">
                                         <h2 class="text-xl font-bold text-gray-900 flex items-center gap-2">
                                             <i class="ph-duotone ph-user-circle text-[#F64900]"></i>
-                                            Data Diri Anda
+                                            Your Information
                                         </h2>
-                                        <p class="text-gray-600 text-sm mt-1">Untuk keperluan konfirmasi dan akses.</p>
+                                        <p class="text-gray-600 text-sm mt-1">For confirmation and access purposes.</p>
                                     </div>
 
                                     <div class="space-y-5">
                                         <div>
-                                            <label for="name" class="block text-sm font-medium text-gray-700 mb-1">Nama Lengkap <span class="text-red-500">*</span></label>
+                                            <label for="name" class="block text-sm font-medium text-gray-700 mb-1">Full Name <span class="text-red-500">*</span></label>
                                             <input 
                                                 type="text" 
                                                 name="name" 
                                                 id="name"
                                                 value="{{ old('name') }}"
                                                 class="w-full px-4 py-3 border border-gray-300 rounded-xl input-focus transition"
-                                                placeholder="Contoh: I Putu Alfin"
+                                                placeholder="e.g., John Doe"
                                                 required
                                             >
                                             @error('name')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
@@ -148,14 +146,14 @@
                                                 id="email"
                                                 value="{{ old('email') }}"
                                                 class="w-full px-4 py-3 border border-gray-300 rounded-xl input-focus transition"
-                                                placeholder="alfin@example.com"
+                                                placeholder="user@example.com"
                                                 required
                                             >
                                             @error('email')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
                                         </div>
 
                                         <div>
-                                            <label for="phone" class="block text-sm font-medium text-gray-700 mb-1">No. WhatsApp <span class="text-red-500">*</span></label>
+                                            <label for="phone" class="block text-sm font-medium text-gray-700 mb-1">WhatsApp Number <span class="text-red-500">*</span></label>
                                             <div class="relative">
                                                 <span class="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-500">+62</span>
                                                 <input 
@@ -169,11 +167,11 @@
                                                 >
                                             </div>
                                             @error('phone')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
-                                            <p class="mt-1 text-xs text-gray-500">Kami akan mengirim konfirmasi & kode akses via WhatsApp.</p>
+                                            <p class="mt-1 text-xs text-gray-500">We’ll send your confirmation and access code via WhatsApp.</p>
                                         </div>
 
                                         <div>
-                                            <label for="address" class="block text-sm font-medium text-gray-700 mb-1">Alamat (Opsional)</label>
+                                            <label for="address" class="block text-sm font-medium text-gray-700 mb-1">Address (Optional)</label>
                                             <textarea 
                                                 name="address" 
                                                 id="address"
@@ -186,19 +184,19 @@
                                     </div>
                                 </div>
 
-                                <!-- Kolom Kanan: Storage & Jadwal -->
+                                <!-- Right Column: Storage & Schedule -->
                                 <div>
                                     <div class="mb-6">
                                         <h2 class="text-xl font-bold text-gray-900 flex items-center gap-2">
                                             <i class="ph-duotone ph-cube text-[#F64900]"></i>
-                                            Pilih Storage & Jadwal
+                                            Select Storage & Schedule
                                         </h2>
-                                        <p class="text-gray-600 text-sm mt-1">Cek ketersediaan dan estimasi harga.</p>
+                                        <p class="text-gray-600 text-sm mt-1">Check availability and price estimate.</p>
                                     </div>
 
                                     <!-- Storage List -->
                                     <div class="mb-6">
-                                        <label class="block text-sm font-medium text-gray-700 mb-2">Storage Tersedia</label>
+                                        <label class="block text-sm font-medium text-gray-700 mb-2">Available Units</label>
                                         <div class="space-y-3 max-h-60 overflow-y-auto pr-2">
                                             @php $safeStorages = isset($storages) && is_iterable($storages) ? $storages : []; @endphp
                                             @forelse($safeStorages as $storage)
@@ -216,9 +214,9 @@
                                                                 <div class="font-medium text-gray-900">{{ $size }}</div>
                                                                 <div class="text-sm text-gray-600 mt-1 line-clamp-1">{{ $desc }}</div>
                                                                 <div class="mt-2 flex items-center gap-2">
-                                                                    <span class="font-bold text-blue-700">Rp{{ number_format($price, 0, ',', '.') }}/hari</span>
+                                                                    <span class="font-bold text-blue-700">Rp{{ number_format($price, 0, ',', '.') }}/day</span>
                                                                     <span class="badge {{ $isAvailable ? 'badge-success' : 'badge-danger' }}">
-                                                                        {{ $isAvailable ? 'Tersedia' : 'Penuh' }}
+                                                                        {{ $isAvailable ? 'Available' : 'Full' }}
                                                                     </span>
                                                                 </div>
                                                             </div>
@@ -237,9 +235,9 @@
                                             @empty
                                                 <div class="text-center py-6 bg-gray-50 rounded-xl">
                                                     <i class="ph-duotone ph-cube text-3xl text-gray-400 mb-2"></i>
-                                                    <p class="text-gray-500">Tidak ada storage tersedia pada periode ini.</p>
+                                                    <p class="text-gray-500">No units available for the selected period.</p>
                                                     <button type="button" onclick="document.getElementById('start_date').focus()" class="mt-3 text-sm text-[#F64900] hover:underline">
-                                                        Ubah tanggal?
+                                                        Change dates?
                                                     </button>
                                                 </div>
                                             @endforelse
@@ -249,10 +247,10 @@
                                         @enderror
                                     </div>
 
-                                    <!-- Tanggal -->
+                                    <!-- Dates -->
                                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
                                         <div>
-                                            <label for="start_date" class="block text-sm font-medium text-gray-700 mb-1">Mulai <span class="text-red-500">*</span></label>
+                                            <label for="start_date" class="block text-sm font-medium text-gray-700 mb-1">Start Date <span class="text-red-500">*</span></label>
                                             <input 
                                                 type="date" 
                                                 name="start_date" 
@@ -265,7 +263,7 @@
                                             @error('start_date')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
                                         </div>
                                         <div>
-                                            <label for="end_date" class="block text-sm font-medium text-gray-700 mb-1">Selesai <span class="text-red-500">*</span></label>
+                                            <label for="end_date" class="block text-sm font-medium text-gray-700 mb-1">End Date <span class="text-red-500">*</span></label>
                                             <input 
                                                 type="date" 
                                                 name="end_date" 
@@ -279,12 +277,12 @@
                                         </div>
                                     </div>
 
-                                    <!-- Estimasi Harga -->
+                                    <!-- Price Estimate -->
                                     <div id="price-preview" class="bg-blue-50 rounded-xl p-4 mb-6 hidden">
                                         <div class="flex items-start justify-between">
                                             <div>
-                                                <p class="font-medium text-gray-800">Estimasi Total Biaya</p>
-                                                <p class="text-sm text-gray-600 mt-1">Harga belum termasuk pajak (jika ada).</p>
+                                                <p class="font-medium text-gray-800">Estimated Total Cost</p>
+                                                <p class="text-sm text-gray-600 mt-1">Price excludes tax (if applicable).</p>
                                             </div>
                                             <div class="text-right">
                                                 <p id="price-amount" class="text-xl font-bold text-blue-700">Rp0</p>
@@ -293,30 +291,29 @@
                                         </div>
                                     </div>
 
-                                    <!-- Catatan -->
+                                    <!-- Notes -->
                                     <div class="mb-6">
-                                        <label for="notes" class="block text-sm font-medium text-gray-700 mb-1">Catatan Khusus (Opsional)</label>
+                                        <label for="notes" class="block text-sm font-medium text-gray-700 mb-1">Special Notes (Optional)</label>
                                         <textarea 
                                             name="notes" 
                                             id="notes"
                                             rows="2"
                                             class="w-full px-4 py-3 border border-gray-300 rounded-xl input-focus transition"
-                                            placeholder="Contoh: Akses hanya Senin-Jumat, barang elektronik, dll."
+                                            placeholder="e.g., Cleaning only on weekdays, electronic items, etc."
                                         >{{ old('notes') }}</textarea>
                                         @error('notes')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
                                     </div>
                                 </div>
                             </div>
 
-                            <!-- Tombol Submit -->
+                            <!-- Submit Button -->
                             <div class="pt-6 border-t mt-8 flex flex-col sm:flex-row justify-end gap-3">
-                                
                                 <button 
                                     type="submit"
                                     class="btn-primary px-6 py-3 text-white font-semibold rounded-xl shadow-md text-center flex items-center justify-center gap-2 w-full sm:w-auto"
                                 >
                                     <i class="ph-duotone ph-check-circle"></i>
-                                    Konfirmasi Booking
+                                    Book Now
                                 </button>
                             </div>
 
@@ -325,15 +322,15 @@
                                 <div class="flex flex-wrap justify-center gap-6 text-gray-600 text-sm">
                                     <div class="flex items-center gap-1.5">
                                         <i class="ph-duotone ph-shield-check text-green-500"></i>
-                                        <span>Data aman & privat</span>
+                                        <span>Data secure & private</span>
                                     </div>
                                     <div class="flex items-center gap-1.5">
                                         <i class="ph-duotone ph-battery-charging text-blue-500"></i>
-                                        <span>CCTV & keamanan 24/7</span>
+                                        <span>CCTV & 24/7 security</span>
                                     </div>
                                     <div class="flex items-center gap-1.5">
                                         <i class="ph-duotone ph-globe-hemisphere-west text-amber-500"></i>
-                                        <span>Terpercaya sejak 2023</span>
+                                        <span>Trusted since 2023</span>
                                     </div>
                                 </div>
                             </div>
@@ -344,7 +341,7 @@
         </section>
     </main>
 
-    <!-- Footer Minimal -->
+    <!-- Minimal Footer -->
     <footer class="bg-gray-900 text-gray-400 py-10">
         <div class="container mx-auto px-4 text-center">
             <div class="flex justify-center mb-4">
@@ -352,7 +349,7 @@
                     <i class="ph-duotone ph-box text-white text-lg"></i>
                 </div>
             </div>
-            <p class="text-gray-300">© {{ date('Y') }} Self Storage Bali. Solusi penyimpanan terbaik di Pulau Dewata.</p>
+            <p class="text-gray-300">© {{ date('Y') }} Self Storage Bali. The best storage solution on the Island of the Gods.</p>
             <p class="mt-2 text-sm">Denpasar, Bali — Indonesia | info@selfstoragebali.com</p>
         </div>
     </footer>
@@ -376,7 +373,7 @@
                     return;
                 }
 
-                // Validasi tanggal
+                // Date validation
                 if (new Date(endDate) < new Date(startDate)) {
                     pricePreview.classList.add('hidden');
                     return;
@@ -384,12 +381,12 @@
 
                 const start = new Date(startDate);
                 const end = new Date(endDate);
-                const diffDays = Math.ceil((end - start) / (1000 * 60 * 60 * 24)) + 1; // inklusif
+                const diffDays = Math.ceil((end - start) / (1000 * 60 * 60 * 24)) + 1; // inclusive
                 const pricePerDay = parseFloat(selectedStorage.dataset.price) || 0;
                 const total = diffDays * pricePerDay;
 
                 priceAmount.textContent = `Rp${total.toLocaleString('id-ID')}`;
-                priceDetail.textContent = `${diffDays} hari × Rp${pricePerDay.toLocaleString('id-ID')}/hari`;
+                priceDetail.textContent = `${diffDays} day(s) × Rp${pricePerDay.toLocaleString('id-ID')}/day`;
                 pricePreview.classList.remove('hidden');
             }
 
@@ -406,10 +403,10 @@
                 radio.addEventListener('change', updatePricePreview);
             });
 
-            // Inisialisasi
+            // Initialize
             updatePricePreview();
 
-            // Auto-focus ke nama saat halaman load
+            // Auto-focus name field on load
             document.getElementById('name').focus();
         });
     </script>
