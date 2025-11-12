@@ -63,8 +63,8 @@
     <div class="flex items-center justify-between mb-3">
       <h3 class="text-sm font-semibold text-gray-700">Bookings — Last 30 Days</h3>
     </div>
-    <div>
-      <canvas id="chartTrend" height="120"></canvas>
+    <div class="h-64"> <!-- ⬅️ PENTING: Beri tinggi eksplisit -->
+      <canvas id="chartTrend" class="w-full h-full"></canvas>
     </div>
   </div>
 
@@ -73,8 +73,8 @@
     <div class="flex items-center justify-between mb-3">
       <h3 class="text-sm font-semibold text-gray-700">Payment Snapshot</h3>
     </div>
-    <div class="flex items-center justify-center">
-      <canvas id="chartPayment" width="240" height="240"></canvas>
+    <div class="flex items-center justify-center h-64"> <!-- ⬅️ Beri tinggi eksplisit -->
+      <canvas id="chartPayment" class="max-w-xs max-h-xs"></canvas>
     </div>
     <div class="mt-4 grid grid-cols-3 text-xs text-gray-600">
       <div>Success: <span class="font-medium">{{ $paymentSnapshot['success'] ?? 0 }}</span></div>
@@ -235,59 +235,100 @@
 </section>
 
 {{-- ======= Scripts: Chart.js ======= --}}
-@push('scripts')
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
 <script>
-  // Data from controller
+  // Ambil data dari controller
   const trendLabels = @json($trendLabels ?? []);
   const trendCounts = @json($trendCounts ?? []);
 
-  const ps = @json($paymentSnapshot ?? ['success'=>0,'pending'=>0,'failed'=>0]);
+  const ps = @json($paymentSnapshot ?? ['success' => 0, 'pending' => 0, 'failed' => 0]);
   const paymentData = [ps.success || 0, ps.pending || 0, ps.failed || 0];
 
-  // Trend bookings line
-  const ctxTrend = document.getElementById('chartTrend').getContext('2d');
-  new Chart(ctxTrend, {
-    type: 'line',
-    data: {
-      labels: trendLabels,
-      datasets: [{
-        label: 'Bookings',
-        data: trendCounts,
-        tension: 0.35,
-        fill: false,
-      }]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: { legend: { display: false } },
-      scales: {
-        x: { grid: { display: false } },
-        y: { beginAtZero: true, ticks: { precision:0 } }
-      }
-    }
+  // 🔧 DEBUG: Log ke console untuk verifikasi data
+  console.log('📊 Chart Data:', {
+    labels: trendLabels,
+    counts: trendCounts,
+    length: trendLabels.length,
+    hasData: trendCounts.some(x => x > 0),
   });
 
-  // Payment snapshot doughnut
-  const ctxPay = document.getElementById('chartPayment').getContext('2d');
-  new Chart(ctxPay, {
-    type: 'doughnut',
-    data: {
-      labels: ['Success', 'Pending', 'Failed'],
-      datasets: [{
-        data: paymentData,
-      }]
-    },
-    options: {
-      responsive: true,
-      cutout: '65%',
-      plugins: {
-        legend: { position: 'bottom' }
+  // Render Chart Trend
+  const ctxTrend = document.getElementById('chartTrend');
+  if (ctxTrend) {
+    new Chart(ctxTrend, {
+      type: 'line',
+      data: {
+        labels: trendLabels,
+        datasets: [{
+          label: 'Bookings',
+          data: trendCounts,
+          borderColor: '#f97316', // orange-500
+          backgroundColor: 'rgba(249, 115, 22, 0.1)',
+          borderWidth: 2,
+          tension: 0.35,
+          fill: false,
+          pointRadius: 3,
+          pointHoverRadius: 5,
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            callbacks: {
+              label: function(context) {
+                return `Bookings: ${context.parsed}`;
+              }
+            }
+          }
+        },
+        scales: {
+          x: {
+            grid: { display: false },
+            ticks: {
+              maxRotation: 0,
+              autoSkip: true,
+              maxTicksLimit: 10
+            }
+          },
+          y: {
+            beginAtZero: true,
+            ticks: { precision: 0, stepSize: 1 }
+          }
+        }
       }
-    }
-  });
+    });
+  }
+
+  // Render Chart Payment
+  const ctxPay = document.getElementById('chartPayment');
+  if (ctxPay) {
+    new Chart(ctxPay, {
+      type: 'doughnut',
+      data: {
+        labels: ['Success', 'Pending', 'Failed'],
+        datasets: [{
+          data: paymentData,
+          backgroundColor: ['#10b981', '#f59e0b', '#ef4444'],
+          borderWidth: 0,
+        }]
+      },
+      options: {
+        responsive: true,
+        cutout: '65%',
+        plugins: {
+          legend: {
+            position: 'bottom',
+            labels: { usePointStyle: true, padding: 15 }
+          }
+        }
+      }
+    });
+  }
 </script>
-@endpush
+
 
 @endsection

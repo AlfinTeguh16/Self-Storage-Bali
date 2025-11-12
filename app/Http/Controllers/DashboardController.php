@@ -13,32 +13,29 @@ class DashboardController extends Controller
 
     public function index()
     {
-        $today = Carbon::today();
-        $now   = Carbon::now();
+        // Gunakan timezone eksplisit agar konsisten
+        $now = Carbon::now(config('app.timezone')); // e.g., 'Asia/Jakarta'
+        $today = $now->copy()->startOfDay();
 
         // ========== KPIs (Cards) ==========
-        // Occupancy Rate
-        $totalStorages  = DB::table('tb_storages')->where('is_deleted', 0)->count();
+        $totalStorages = DB::table('tb_storages')->where('is_deleted', 0)->count();
         $bookedStorages = DB::table('tb_storage_management')
             ->where('is_deleted', 0)
             ->where('status', 'booked')
             ->count();
-        $occupancyRate  = $totalStorages ? round($bookedStorages / $totalStorages * 100, 1) : 0;
+        $occupancyRate = $totalStorages ? round($bookedStorages / $totalStorages * 100, 1) : 0;
 
-        // Active bookings today
         $activeToday = DB::table('tb_bookings')
             ->where('is_deleted', 0)
             ->whereDate('start_date', '<=', $today)
             ->whereDate('end_date', '>=', $today)
             ->count();
 
-        // New bookings (7 days)
         $new7d = DB::table('tb_bookings')
             ->where('is_deleted', 0)
-            ->whereDate('created_at', '>=', $now->copy()->subDays(7))
+            ->where('created_at', '>=', $now->copy()->subDays(7)->startOfDay())
             ->count();
 
-        // Available storages
         $availableStorages = DB::table('tb_storage_management as sm')
             ->join('tb_storages as s', 's.id', '=', 'sm.storage_id')
             ->where('sm.is_deleted', 0)
@@ -47,14 +44,12 @@ class DashboardController extends Controller
             ->whereNull('sm.booking_id')
             ->count();
 
-        // Ending soon (≤ 3 hari ke depan)
         $endingSoonCount = DB::table('tb_bookings')
             ->where('is_deleted', 0)
             ->whereDate('end_date', '>=', $today)
             ->whereDate('end_date', '<=', $today->copy()->addDays(3))
             ->count();
 
-        // Revenue (est.) bulan berjalan: sum harga storage dari booking sukses bulan ini
         $revenueMonth = DB::table('tb_bookings as b')
             ->join('tb_storages as s', 's.id', '=', 'b.storage_id')
             ->where('b.is_deleted', 0)
@@ -65,32 +60,55 @@ class DashboardController extends Controller
             ->sum('s.price');
 
         // ========== Charts ==========
-        // Trend bookings (30 hari): tanggal vs jumlah booking dibuat
+        // 🔧 Perbaikan: pastikan batas waktu eksplisit + gunakan DATE() yang aman
+        $startDate = $now->copy()->subDays(30)->startOfDay(); // inklusif hari ke-30
+        $endDate = $now->copy()->endOfDay(); // inklusif hari ini
+
         $trendRaw = DB::table('tb_bookings')
             ->select(DB::raw('DATE(created_at) as d'), DB::raw('COUNT(*) as c'))
             ->where('is_deleted', 0)
-            ->whereDate('created_at', '>=', $now->copy()->subDays(30))
+            ->whereBetween('created_at', [$startDate, $endDate])
             ->groupBy('d')
             ->orderBy('d')
             ->get();
 
-        // Normalisasi jadi 31 titik (hari ke-30 s/d hari ini) agar chart rapi
+        // Normalisasi ke 31 hari (hari ke-30 s.d. hari ini)
         $trendLabels = [];
         $trendCounts = [];
+
         for ($i = 30; $i >= 0; $i--) {
-            $date = $now->copy()->subDays($i)->toDateString();
+            $date = $now->copy()->subDays($i)->toDateString(); // 'Y-m-d'
             $trendLabels[] = Carbon::parse($date)->format('d M');
-            $found = $trendRaw->firstWhere('d', $date);
-            $trendCounts[] = $found ? (int)$found->c : 0;
+
+            // 🔧 Perbaikan: pastikan perbandingan string Y-m-d eksak
+            $found = $trendRaw->first(function ($item) use ($date) {
+                // $item itu stdClass, cek apakah punya properti 'stdClass'
+                if (isset($item->stdClass)) {
+                    return $item->stdClass->d === $date;
+                }
+                // fallback: normal object
+                return $item->d === $date;
+            });
+            
+            if ($found) {
+                $count = isset($found->stdClass) ? (int) $found->stdClass->c : (int) $found->c;
+                $trendCounts[] = $count;
+            } else {
+                $trendCounts[] = 0;
+            }
         }
 
+        // Optional: log untuk debugging (hapus di production)
+        Log::info('Trend Raw Data:', $trendRaw->toArray());
+        Log::info('Trend Labels:', $trendLabels);
+        Log::info('Trend Counts:', $trendCounts);
+
         // ========== Tables ==========
-        // Latest Payments (10 terakhir) — join customer + booking terakhir per customer
         $latestBookingSub = DB::raw("
             (SELECT customer_id, MAX(id) AS last_booking_id
-             FROM tb_bookings
-             WHERE is_deleted = 0
-             GROUP BY customer_id) lb
+            FROM tb_bookings
+            WHERE is_deleted = 0
+            GROUP BY customer_id) lb
         ");
 
         $latestPayments = DB::table('tb_payments as p')
@@ -110,7 +128,6 @@ class DashboardController extends Controller
                 'b.status as booking_status',
             ]);
 
-        // Current stays: booking aktif hari ini (join customer + storage)
         $currentStays = DB::table('tb_bookings as b')
             ->join('tb_customers as c', 'c.id', '=', 'b.customer_id')
             ->join('tb_storages as s', 's.id', '=', 'b.storage_id')
@@ -129,7 +146,6 @@ class DashboardController extends Controller
                 's.price as storage_price',
             ]);
 
-        // Ending soon list (≤ 3 hari)
         $endingSoonList = DB::table('tb_bookings as b')
             ->join('tb_customers as c', 'c.id', '=', 'b.customer_id')
             ->join('tb_storages as s', 's.id', '=', 'b.storage_id')
@@ -146,42 +162,24 @@ class DashboardController extends Controller
                 's.size as storage_size',
             ]);
 
-        // Payment snapshot (count per status dari tb_bookings)
         $paymentSnapshotRaw = DB::table('tb_bookings')
             ->select('status', DB::raw('COUNT(*) as c'))
             ->where('is_deleted', 0)
             ->groupBy('status')
-            ->pluck('c', 'status'); // ['success'=>x, 'pending'=>y, 'failed'=>z]
+            ->pluck('c', 'status');
 
         $paymentSnapshot = [
-            'success' => (int)($paymentSnapshotRaw['success'] ?? 0),
-            'pending' => (int)($paymentSnapshotRaw['pending'] ?? 0),
-            'failed'  => (int)($paymentSnapshotRaw['failed'] ?? 0),
+            'success' => (int) ($paymentSnapshotRaw['success'] ?? 0),
+            'pending' => (int) ($paymentSnapshotRaw['pending'] ?? 0),
+            'failed'  => (int) ($paymentSnapshotRaw['failed'] ?? 0),
         ];
 
-        return view('dashboard.index', [
-            // KPIs
-            'occupancyRate'     => $occupancyRate,
-            'totalStorages'     => $totalStorages,
-            'bookedStorages'    => $bookedStorages,
-            'activeToday'       => $activeToday,
-            'new7d'             => $new7d,
-            'availableStorages' => $availableStorages,
-            'endingSoonCount'   => $endingSoonCount,
-            'revenueMonth'      => $revenueMonth,
-
-            // Charts
-            'trendLabels' => $trendLabels,  // e.g. ['15 Jul','16 Jul',...,'14 Aug']
-            'trendCounts' => $trendCounts,  // e.g. [2,0,1,...,4]
-
-            // Tables
-            'latestPayments' => $latestPayments,
-            'currentStays'   => $currentStays,
-            'endingSoonList' => $endingSoonList,
-
-            // Snapshot
-            'paymentSnapshot' => $paymentSnapshot,
-        ]);
+        return view('dashboard.index', compact(
+            'occupancyRate', 'totalStorages', 'bookedStorages', 'activeToday',
+            'new7d', 'availableStorages', 'endingSoonCount', 'revenueMonth',
+            'trendLabels', 'trendCounts', 'latestPayments', 'currentStays',
+            'endingSoonList', 'paymentSnapshot'
+        ));
     }
 
     public function admin(){
