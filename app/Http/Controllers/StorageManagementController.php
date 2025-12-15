@@ -8,6 +8,7 @@ use App\Models\Storage;
 use App\Models\Booking;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 
 class StorageManagementController extends Controller
@@ -17,7 +18,7 @@ class StorageManagementController extends Controller
      */
     public function index()
     {
-        $storages = \App\Models\Storage::with([
+        $storages = Storage::with([
             'storageManagement' => function ($query) {
                 $query->orderBy('id', 'desc'); // Ambil yang terbaru di index 0
             },
@@ -45,13 +46,13 @@ class StorageManagementController extends Controller
     /**
      * Show the form for creating a new resource.
      */
-    public function create()
-    {
-        $storages = Storage::where('is_deleted', false)->get();
-        $bookings = Booking::where('is_deleted', false)->get();
+    // public function create()
+    // {
+    //     $storages = Storage::where('is_deleted', false)->get();
+    //     $bookings = Booking::where('is_deleted', false)->get();
 
-        return view('module.storage_management.create', compact('storages', 'bookings'));
-    }
+    //     return view('module.storage_management.create', compact('storages', 'bookings'));
+    // }
 
     /**
      * Store a newly created resource in storage.
@@ -142,10 +143,25 @@ class StorageManagementController extends Controller
 
             $validated = $request->validate([
                 'last_clean' => 'required|date',
+                'cost' => 'nullable|numeric|min:0', // Optional cost input
             ]);
-            // dd($validated);
+            
+            // Update Last Clean Date
+            $management->update(['last_clean' => $validated['last_clean']]);
 
-            $management->update($validated);
+            // Create Expense if cost provided
+            if ($request->filled('cost') && $request->cost > 0) {
+                \App\Models\OperationalExpense::create([
+                    'amount' => $request->cost,
+                    'category' => 'Kebersihan',
+                    'date' => $validated['last_clean'],
+                    'description' => 'Biaya kebersihan unit ' . ($management->storage->name ?? $management->storage_id),
+                    'storage_id' => $management->storage_id,
+                    'booking_id' => $management->booking_id,
+                ]);
+                
+                return redirect()->route('storage-management.index')->with('success', 'Last clean updated & expense recorded.');
+            }
 
             return redirect()->route('storage-management.index')->with('success', 'Last clean date updated successfully.');
         } catch (\Exception $e) {

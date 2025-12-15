@@ -34,59 +34,58 @@ class StorageController extends Controller
      */
     public function store(Request $request)
     {
-        // dd($request->all());
         try {
-            Log::info('Start storing storage', ['request' => $request->all()]);
-
             $validated = $request->validate([
                 'size'        => 'required|string|max:50',
                 'description' => 'nullable|string',
                 'price'       => 'required|integer|min:0',
             ]);
-            Log::info('Validation passed for storage', ['validated' => $validated]);
-
+    
             // Simpan storage
             $storage = Storage::create($validated);
-            Log::info('Storage created', ['storage_id' => $storage->id]);
-
-            // Simpan storage management default
-            $sm = StorageManagement::create([
-                'storage_id'  => $storage->id,
-                'booking_id'  => null,
-                'status'      => 'available',
-                'last_clean'  => null,
-                'is_deleted'  => 0,
-            ]);
-
-            Log::info('Storage management created', [
-                'storage_management_id' => $sm->id,
+    
+            // ✅ Pastikan StorageManagement diisi eksplisit & aman
+            $smData = [
                 'storage_id' => $storage->id,
-                'status' => $sm->status
+                'booking_id' => null,
+                'status'     => 'available', // pastikan lowercase
+                'last_clean' => null,
+                'is_deleted' => false,       // atau 0
+            ];
+    
+            // Cek apakah model mengizinkan fillable
+            $sm = new StorageManagement();
+            $allowed = $sm->getFillable();
+            $missing = array_diff(array_keys($smData), $allowed);
+            if (!empty($missing)) {
+                Log::warning('StorageManagement fillable mismatch', ['missing' => $missing]);
+                // fallback: isi manual
+                $sm->fill(array_intersect_key($smData, array_flip($allowed)));
+                foreach ($missing as $key) {
+                    $sm->{$key} = $smData[$key];
+                }
+                $sm->save();
+            } else {
+                $sm = StorageManagement::create($smData);
+            }
+    
+            Log::info('Storage & Management created', [
+                'storage_id' => $storage->id,
+                'sm_id' => $sm->id,
+                'status' => $sm->status,
             ]);
-   
-
-            // return response()->json([
-            //     'status' => 'success',
-            //     'data storage' => $storage,
-            //     'storage management' => $sm,
-            // ]);
-
-
+    
             return redirect()
                 ->route('data-storage.index')
                 ->with('success', 'Data Storage created successfully');
+    
         } catch (\Exception $e) {
-            Log::error('Error storing storage', [
-                'error' => $e->getMessage(),
+            Log::error('Storage creation failed', [
+                'message' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()
             ]);
-
-            return redirect()
-                ->back()
-                ->withErrors($e->getMessage())
-                ->withInput();
+            return back()->withErrors('Gagal membuat storage: ' . $e->getMessage())->withInput();
         }
-
     }
 
     /**

@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('storage_id')->constrained('tb_storages')->onDelete('cascade')->nullable();
             $table->foreignId('booking_id')->constrained('tb_bookings')->onDelete('cascade')->nullable();
-            $table->enum('status', ['available', 'booked', 'maintenance', 'cleaning'])->default('available');
+            $table->enum('status', ['available', 'booked', 'maintenance', 'cleaning', 'overdue'])->default('available');
             $table->date('last_clean')->nullable();
             $table->boolean('is_deleted')->default(false);
             $table->timestamps();

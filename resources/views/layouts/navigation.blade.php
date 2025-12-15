@@ -28,6 +28,12 @@
             <x-nav-link href="{{ route('data-payment.index') }}" :active="request()->routeIs('data-payment.*')">
               <p class="mr-2"> <i class="ph ph-credit-card"></i>Payment </p>
             </x-nav-link>
+            <x-nav-link href="{{ route('expenses.index') }}" :active="request()->routeIs('expenses.*')">
+              <p class="mr-2"> <i class="ph ph-money"></i>Pengeluaran </p>
+            </x-nav-link>
+            <x-nav-link href="{{ route('report.index') }}" :active="request()->routeIs('report.*')">
+              <p class="mr-2"> <i class="ph ph-chart-line"></i>Laporan </p>
+            </x-nav-link>
           @endif
         @endauth
 

@@ -14,8 +14,10 @@ use App\Http\Controllers\StorageUnitController;
 use App\Http\Controllers\ContactController;
 use App\Http\Controllers\MidtransController;
 use App\Http\Controllers\NonAuthController;
+use App\Http\Controllers\ExpenseController;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\PaymentEmail;
+use App\Http\Controllers\ReportController;
 
 // ====================== Home & Auth ======================
 Route::get('/', fn() => view('pages.home'))->name('homepage');
@@ -67,6 +69,7 @@ Route::prefix('data-booking')->name('data-booking.')->middleware(['auth', 'role:
     Route::put('{booking}', [BookingController::class, 'update'])->name('update');
     Route::delete('{booking}', [BookingController::class, 'destroy'])->name('destroy');
     Route::get('{booking}', [BookingController::class, 'show'])->name('show');
+    Route::post('{id}/end', [BookingController::class, 'endBooking'])->name('end');
 });
 
 // ====================== Data Customer ======================
@@ -99,6 +102,20 @@ Route::prefix('storage-management')->name('storage-management.')->middleware(['a
     Route::delete('{management}', [StorageManagementController::class, 'destroy'])->name('destroy');
     Route::get('{management}', [StorageManagementController::class, 'show'])->name('show');
     Route::put('{management}/last-clean', [StorageManagementController::class, 'lastClean'])->name('last-clean');
+});
+
+// ====================== Expenses & Report ======================
+Route::prefix('expenses')->name('expenses.')->middleware(['auth', 'role:admin'])->group(function () {
+    Route::get('/', [ExpenseController::class, 'index'])->name('index');
+    Route::post('/', [ExpenseController::class, 'store'])->name('store');
+    Route::put('{id}', [ExpenseController::class, 'update'])->name('update');
+    Route::delete('{id}', [ExpenseController::class, 'destroy'])->name('destroy');
+});
+
+Route::prefix('report')->name('report.')->middleware(['auth', 'role:admin'])->group(function () {
+    Route::get('/', [ReportController::class, 'index'])->name('index');
+    Route::get('/export-excel', [ReportController::class, 'exportExcel'])->name('export-excel'); // Todo
+    Route::get('/export-pdf', [ReportController::class, 'exportPdf'])->name('export-pdf'); // Todo
 });
 
 Route::post('midtrans-notification', [MidtransController::class, 'notification']);

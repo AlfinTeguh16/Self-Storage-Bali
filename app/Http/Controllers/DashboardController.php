@@ -3,39 +3,59 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Models\Booking;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
 use Carbon\Carbon;
 
 class DashboardController extends Controller
 {
-
-    public function index()
+    public function index(Request $request)
     {
-        // Gunakan timezone eksplisit agar konsisten
-        $now = Carbon::now(config('app.timezone')); // e.g., 'Asia/Jakarta'
+        // 🔹 Ambil tahun dari query string, default: tahun ini
+        $selectedYear = (int) $request->input('year', now()->year);
+        $selectedYear = max(2020, min($selectedYear, now()->year + 1));
+
+        $now = Carbon::now(config('app.timezone', 'Asia/Jakarta'));
         $today = $now->copy()->startOfDay();
+        $startOfYear = Carbon::create($selectedYear, 1, 1)->startOfDay();
+        $endOfYear = Carbon::create($selectedYear, 12, 31)->endOfDay();
 
         // ========== KPIs (Cards) ==========
-        $totalStorages = DB::table('tb_storages')->where('is_deleted', 0)->count();
-        $bookedStorages = DB::table('tb_storage_management')
-            ->where('is_deleted', 0)
-            ->where('status', 'booked')
-            ->count();
-        $occupancyRate = $totalStorages ? round($bookedStorages / $totalStorages * 100, 1) : 0;
 
+        // Total storage aktif (tidak dihapus)
+        $totalStorages = DB::table('tb_storages')
+            ->where('is_deleted', 0)
+            ->count();
+
+        // 🔹 OCCUPANCY RATE: storage yang pernah digunakan di tahun terpilih
+        $bookedStorages = DB::table('tb_bookings')
+            ->where('is_deleted', 0)
+            ->where(function ($query) use ($startOfYear, $endOfYear) {
+                $query->whereBetween('start_date', [$startOfYear, $endOfYear])
+                      ->orWhereBetween('end_date', [$startOfYear, $endOfYear])
+                      ->orWhere(function ($q) use ($startOfYear, $endOfYear) {
+                          $q->where('start_date', '<=', $startOfYear)
+                            ->where('end_date', '>=', $endOfYear);
+                      });
+            })
+            ->distinct('storage_id')
+            ->count();
+
+        $occupancyRate = $totalStorages ? round(($bookedStorages / $totalStorages) * 100, 1) : 0.0;
+
+        // 🔹 Active Today (real-time — tidak tergantung tahun)
         $activeToday = DB::table('tb_bookings')
             ->where('is_deleted', 0)
             ->whereDate('start_date', '<=', $today)
             ->whereDate('end_date', '>=', $today)
             ->count();
 
-        $new7d = DB::table('tb_bookings')
+        // 🔹 New Bookings: di tahun terpilih
+        $newThisYear = DB::table('tb_bookings')
             ->where('is_deleted', 0)
-            ->where('created_at', '>=', $now->copy()->subDays(7)->startOfDay())
+            ->whereBetween('created_at', [$startOfYear, $endOfYear])
             ->count();
 
+        // 🔹 Available Storages (real-time — status available & tidak sedang dibooking)
         $availableStorages = DB::table('tb_storage_management as sm')
             ->join('tb_storages as s', 's.id', '=', 'sm.storage_id')
             ->where('sm.is_deleted', 0)
@@ -44,66 +64,40 @@ class DashboardController extends Controller
             ->whereNull('sm.booking_id')
             ->count();
 
+        // 🔹 Ending Soon (≤ 3 hari dari hari ini — real-time)
         $endingSoonCount = DB::table('tb_bookings')
             ->where('is_deleted', 0)
             ->whereDate('end_date', '>=', $today)
             ->whereDate('end_date', '<=', $today->copy()->addDays(3))
             ->count();
 
-        $revenueMonth = DB::table('tb_bookings as b')
+        // 🔹 Revenue: hanya booking 'success' di tahun terpilih
+        $revenueYear = DB::table('tb_bookings as b')
             ->join('tb_storages as s', 's.id', '=', 'b.storage_id')
             ->where('b.is_deleted', 0)
             ->where('s.is_deleted', 0)
             ->where('b.status', 'success')
-            ->whereYear('b.created_at', $now->year)
-            ->whereMonth('b.created_at', $now->month)
+            ->whereBetween('b.created_at', [$startOfYear, $endOfYear])
             ->sum('s.price');
 
         // ========== Charts ==========
-        // 🔧 Perbaikan: pastikan batas waktu eksplisit + gunakan DATE() yang aman
-        $startDate = $now->copy()->subDays(30)->startOfDay(); // inklusif hari ke-30
-        $endDate = $now->copy()->endOfDay(); // inklusif hari ini
 
-        $trendRaw = DB::table('tb_bookings')
-            ->select(DB::raw('DATE(created_at) as d'), DB::raw('COUNT(*) as c'))
-            ->where('is_deleted', 0)
-            ->whereBetween('created_at', [$startDate, $endDate])
-            ->groupBy('d')
-            ->orderBy('d')
-            ->get();
-
-        // Normalisasi ke 31 hari (hari ke-30 s.d. hari ini)
+        // 🔹 Trend Bookings: per bulan dalam tahun terpilih
         $trendLabels = [];
         $trendCounts = [];
 
-        for ($i = 30; $i >= 0; $i--) {
-            $date = $now->copy()->subDays($i)->toDateString(); // 'Y-m-d'
-            $trendLabels[] = Carbon::parse($date)->format('d M');
-
-            // 🔧 Perbaikan: pastikan perbandingan string Y-m-d eksak
-            $found = $trendRaw->first(function ($item) use ($date) {
-                // $item itu stdClass, cek apakah punya properti 'stdClass'
-                if (isset($item->stdClass)) {
-                    return $item->stdClass->d === $date;
-                }
-                // fallback: normal object
-                return $item->d === $date;
-            });
-            
-            if ($found) {
-                $count = isset($found->stdClass) ? (int) $found->stdClass->c : (int) $found->c;
-                $trendCounts[] = $count;
-            } else {
-                $trendCounts[] = 0;
-            }
+        for ($month = 1; $month <= 12; $month++) {
+            $trendLabels[] = Carbon::create($selectedYear, $month, 1)->format('M');
+            $count = DB::table('tb_bookings')
+                ->where('is_deleted', 0)
+                ->whereYear('created_at', $selectedYear)
+                ->whereMonth('created_at', $month)
+                ->count();
+            $trendCounts[] = $count;
         }
 
-        // Optional: log untuk debugging (hapus di production)
-        Log::info('Trend Raw Data:', $trendRaw->toArray());
-        Log::info('Trend Labels:', $trendLabels);
-        Log::info('Trend Counts:', $trendCounts);
-
         // ========== Tables ==========
+
         $latestBookingSub = DB::raw("
             (SELECT customer_id, MAX(id) AS last_booking_id
             FROM tb_bookings
@@ -111,11 +105,13 @@ class DashboardController extends Controller
             GROUP BY customer_id) lb
         ");
 
+        // 🔹 Latest Payments: di tahun terpilih
         $latestPayments = DB::table('tb_payments as p')
             ->leftJoin('tb_customers as c', 'c.id', '=', 'p.customer_id')
             ->leftJoin($latestBookingSub, 'lb.customer_id', '=', 'p.customer_id')
             ->leftJoin('tb_bookings as b', 'b.id', '=', 'lb.last_booking_id')
             ->where('p.is_deleted', 0)
+            ->whereBetween('p.created_at', [$startOfYear, $endOfYear])
             ->orderByDesc('p.id')
             ->limit(10)
             ->get([
@@ -128,6 +124,7 @@ class DashboardController extends Controller
                 'b.status as booking_status',
             ]);
 
+        // 🔹 Current Stays: hari ini saja (real-time)
         $currentStays = DB::table('tb_bookings as b')
             ->join('tb_customers as c', 'c.id', '=', 'b.customer_id')
             ->join('tb_storages as s', 's.id', '=', 'b.storage_id')
@@ -146,6 +143,7 @@ class DashboardController extends Controller
                 's.price as storage_price',
             ]);
 
+        // 🔹 Ending Soon List: ≤ 3 hari ke depan (real-time)
         $endingSoonList = DB::table('tb_bookings as b')
             ->join('tb_customers as c', 'c.id', '=', 'b.customer_id')
             ->join('tb_storages as s', 's.id', '=', 'b.storage_id')
@@ -162,9 +160,11 @@ class DashboardController extends Controller
                 's.size as storage_size',
             ]);
 
+        // 🔹 Payment Snapshot: di tahun terpilih
         $paymentSnapshotRaw = DB::table('tb_bookings')
             ->select('status', DB::raw('COUNT(*) as c'))
             ->where('is_deleted', 0)
+            ->whereBetween('created_at', [$startOfYear, $endOfYear])
             ->groupBy('status')
             ->pluck('c', 'status');
 
@@ -175,14 +175,26 @@ class DashboardController extends Controller
         ];
 
         return view('dashboard.index', compact(
-            'occupancyRate', 'totalStorages', 'bookedStorages', 'activeToday',
-            'new7d', 'availableStorages', 'endingSoonCount', 'revenueMonth',
-            'trendLabels', 'trendCounts', 'latestPayments', 'currentStays',
-            'endingSoonList', 'paymentSnapshot'
+            'occupancyRate',
+            'totalStorages',
+            'bookedStorages',
+            'activeToday',
+            'newThisYear',
+            'availableStorages',
+            'endingSoonCount',
+            'revenueYear',
+            'trendLabels',
+            'trendCounts',
+            'latestPayments',
+            'currentStays',
+            'endingSoonList',
+            'paymentSnapshot',
+            'selectedYear'
         ));
     }
 
-    public function admin(){
-        return $this->index();
+    public function admin()
+    {
+        return $this->index(request());
     }
 }

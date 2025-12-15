@@ -2,6 +2,20 @@
 @section('title', 'Dashboard')
 @section('content')
 
+{{-- ======= Filter Tahun ======= --}}
+<section class="mb-6">
+  <form method="GET" class="flex items-center gap-4">
+    <label for="year" class="text-sm font-medium text-gray-700">Filter by Year:</label>
+    <select name="year" id="year" class="border border-gray-300 rounded-md px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent" onchange="this.form.submit()">
+      @for ($y = now()->year; $y >= 2020; $y--)
+        <option value="{{ $y }}" {{ request('year', now()->year) == $y ? 'selected' : '' }}>
+          {{ $y }}
+        </option>
+      @endfor
+    </select>
+  </form>
+</section>
+
 {{-- ======= KPIs / Cards ======= --}}
 <section class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 mb-6">
   {{-- Occupancy --}}
@@ -26,17 +40,17 @@
     <div class="text-xs text-gray-500 mt-1">Ongoing today</div>
   </div>
 
-  {{-- New 7d --}}
+  {{-- New This Year --}}
   <div class="bg-white rounded-xl border border-gray-200 p-4">
-    <div class="text-sm text-gray-500">New Bookings (Last 7 Days)</div>
-    <div class="mt-1 text-2xl font-semibold">{{ (int) $new7d }}</div>
-    <div class="text-xs text-gray-500 mt-1">Orders in the last 7 days</div>
+    <div class="text-sm text-gray-500">New Bookings ({{ $selectedYear }})</div>
+    <div class="mt-1 text-2xl font-semibold">{{ (int) $newThisYear }}</div>
+    <div class="text-xs text-gray-500 mt-1">Orders in {{ $selectedYear }}</div>
   </div>
 
-  {{-- Revenue (month) --}}
+  {{-- Revenue (Year) --}}
   <div class="bg-white rounded-xl border border-gray-200 p-4">
-    <div class="text-sm text-gray-500">Revenue (This Month)</div>
-    <div class="mt-1 text-2xl font-semibold">Rp {{ number_format((int) $revenueMonth, 0, ',', '.') }}</div>
+    <div class="text-sm text-gray-500">Revenue ({{ $selectedYear }})</div>
+    <div class="mt-1 text-2xl font-semibold">Rp {{ number_format((int) $revenueYear, 0, ',', '.') }}</div>
     <div class="text-xs text-gray-500 mt-1">From <span class="font-medium">successful</span> bookings</div>
   </div>
 </section>
@@ -61,9 +75,11 @@
   {{-- Trend Bookings (line) --}}
   <div class="xl:col-span-2 bg-white rounded-xl border border-gray-200 p-4">
     <div class="flex items-center justify-between mb-3">
-      <h3 class="text-sm font-semibold text-gray-700">Bookings — Last 30 Days</h3>
+      <h3 class="text-sm font-semibold text-gray-700">
+        Bookings — {{ $selectedYear }} (Monthly)
+      </h3>
     </div>
-    <div class="h-64"> <!-- ⬅️ PENTING: Beri tinggi eksplisit -->
+    <div class="h-64">
       <canvas id="chartTrend" class="w-full h-full"></canvas>
     </div>
   </div>
@@ -71,9 +87,11 @@
   {{-- Payment Snapshot (doughnut) --}}
   <div class="bg-white rounded-xl border border-gray-200 p-4">
     <div class="flex items-center justify-between mb-3">
-      <h3 class="text-sm font-semibold text-gray-700">Payment Snapshot</h3>
+      <h3 class="text-sm font-semibold text-gray-700">
+        Payment Snapshot ({{ $selectedYear }})
+      </h3>
     </div>
-    <div class="flex items-center justify-center h-64"> <!-- ⬅️ Beri tinggi eksplisit -->
+    <div class="flex items-center justify-center h-64">
       <canvas id="chartPayment" class="max-w-xs max-h-xs"></canvas>
     </div>
     <div class="mt-4 grid grid-cols-3 text-xs text-gray-600">
@@ -89,7 +107,7 @@
   {{-- Latest Payments --}}
   <div class="bg-white rounded-xl border border-gray-200">
     <div class="p-4 border-b border-gray-100">
-      <h3 class="text-sm font-semibold text-gray-700">Latest Payments</h3>
+      <h3 class="text-sm font-semibold text-gray-700">Latest Payments ({{ $selectedYear }})</h3>
     </div>
     <div class="overflow-x-auto">
       <table class="min-w-full">
@@ -131,7 +149,7 @@
                 </span>
               </td>
               <td class="px-4 py-2 text-sm text-gray-600">
-                {{ $p->created_at ? \Illuminate\Support\Carbon::parse($p->created_at)->format('d M Y H:i') : '—' }}
+                {{ $p->created_at ? \Carbon\Carbon::parse($p->created_at)->format('d M Y H:i') : '—' }}
               </td>
               <td class="px-4 py-2">
                 <div class="flex items-center justify-center gap-2">
@@ -151,7 +169,7 @@
             </tr>
           @empty
             <tr>
-              <td colspan="6" class="px-4 py-6 text-center text-gray-500">No payment transactions yet.</td>
+              <td colspan="6" class="px-4 py-6 text-center text-gray-500">No payment transactions in {{ $selectedYear }}.</td>
             </tr>
           @endforelse
         </tbody>
@@ -182,9 +200,9 @@
               <td class="px-4 py-2">{{ $b->customer_name }}</td>
               <td class="px-4 py-2">{{ $b->storage_size }}</td>
               <td class="px-4 py-2 text-sm text-gray-600">
-                {{ \Illuminate\Support\Carbon::parse($b->start_date)->format('d M Y') }}
+                {{ \Carbon\Carbon::parse($b->start_date)->format('d M Y') }}
                 —
-                {{ \Illuminate\Support\Carbon::parse($b->end_date)->format('d M Y') }}
+                {{ \Carbon\Carbon::parse($b->end_date)->format('d M Y') }}
               </td>
               <td class="px-4 py-2 text-right">Rp {{ number_format((int) $b->storage_price, 0, ',', '.') }}</td>
             </tr>
@@ -221,7 +239,7 @@
             <td class="px-4 py-2">{{ $e->customer_name }}</td>
             <td class="px-4 py-2">{{ $e->storage_size }}</td>
             <td class="px-4 py-2 text-sm text-gray-600">
-              {{ \Illuminate\Support\Carbon::parse($e->end_date)->format('d M Y') }}
+              {{ \Carbon\Carbon::parse($e->end_date)->format('d M Y') }}
             </td>
           </tr>
         @empty
@@ -245,15 +263,7 @@
   const ps = @json($paymentSnapshot ?? ['success' => 0, 'pending' => 0, 'failed' => 0]);
   const paymentData = [ps.success || 0, ps.pending || 0, ps.failed || 0];
 
-  // 🔧 DEBUG: Log ke console untuk verifikasi data
-  console.log('📊 Chart Data:', {
-    labels: trendLabels,
-    counts: trendCounts,
-    length: trendLabels.length,
-    hasData: trendCounts.some(x => x > 0),
-  });
-
-  // Render Chart Trend
+  // Render Chart Trend (Line: Monthly)
   const ctxTrend = document.getElementById('chartTrend');
   if (ctxTrend) {
     new Chart(ctxTrend, {
@@ -263,7 +273,7 @@
         datasets: [{
           label: 'Bookings',
           data: trendCounts,
-          borderColor: '#f97316', // orange-500
+          borderColor: '#f97316',
           backgroundColor: 'rgba(249, 115, 22, 0.1)',
           borderWidth: 2,
           tension: 0.35,
@@ -280,7 +290,7 @@
           tooltip: {
             callbacks: {
               label: function(context) {
-                return `Bookings: ${context.parsed}`;
+                return `Bookings: ${context.parsed.y}`;
               }
             }
           }
@@ -291,7 +301,7 @@
             ticks: {
               maxRotation: 0,
               autoSkip: true,
-              maxTicksLimit: 10
+              maxTicksLimit: 12
             }
           },
           y: {
@@ -303,7 +313,7 @@
     });
   }
 
-  // Render Chart Payment
+  // Render Chart Payment (Doughnut)
   const ctxPay = document.getElementById('chartPayment');
   if (ctxPay) {
     new Chart(ctxPay, {
@@ -329,6 +339,5 @@
     });
   }
 </script>
-
 
 @endsection

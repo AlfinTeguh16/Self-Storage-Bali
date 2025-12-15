@@ -32,6 +32,12 @@
                     <td class="px-4 py-2">{{ \Carbon\Carbon::parse($booking->end_date)->format('d-m-Y') }}</td>
                     <td class="px-4 py-2">{{ $booking->notes }}</td>
                     <td class="px-4 py-2 flex justify-center ">
+                        <form action="{{ route('data-booking.end', $booking->id) }}" method="POST" class="inline">
+                            @csrf
+                            <x-button type="submit" variant="neutral" onclick="return confirm('Are you sure you want to end this booking? The storage will be returned to available status.')">
+                                End Booking
+                            </x-button>
+                        </form>
                         <x-button variant="neutral" onclick="window.location='{{ route('data-booking.show', $booking->id) }}'" class="gap-1 flex flex-row items-center align-middle justify-center mx-1 "> <i class="ph-bold ph-eye"></i></x-button>
                         <x-button variant="secondary" onclick="window.location='{{ route('data-booking.edit', $booking->id) }}'" class="gap-1 flex flex-row items-center align-middle justify-center mx-1 "> <i class="ph-bold ph-pencil-simple"></i></x-button>
                         <form action="{{ route('data-booking.destroy', $booking->id) }}" method="POST" class="inline">

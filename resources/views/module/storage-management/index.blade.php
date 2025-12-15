@@ -15,32 +15,38 @@
     <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-5">
         @foreach($storageGroup as $storage)
             @php
-                // record terbaru (sudah di-eager load desc by id dari controller)
                 $management = $storage->storageManagement->first();
-                $isBooked = $storage->storageManagement->where('status', 'booked')->isNotEmpty();
+                $booking = $management?->booking;
 
-                $statusIcon = $isBooked ? '❌' : '✔';
-                $statusText = $isBooked ? 'Booked' : 'Available';
-                $bgColor = $isBooked
+                $bookingId = $management?->booking_id;
+                $endDate = $booking?->end_date; // ← Ambil dari booking, bukan storage_management
+                $status = $management?->status ?? 'available';
+
+                // Default (akan di-override oleh JS jika overdue)
+                $statusIcon = $bookingId ? '📅' : '✔';
+                $statusText = $bookingId ? 'Booked' : 'Available';
+                $bgColor = $bookingId
                     ? 'bg-gradient-to-br from-red-300 to-red-400 text-white'
                     : 'bg-gradient-to-br from-green-200 to-green-300 text-gray-800';
 
-                // Teks human readable untuk tampilan card
                 $lastCleanHuman = $management?->last_clean
                     ? \Illuminate\Support\Carbon::parse($management->last_clean)->toFormattedDateString()
                     : 'Never Cleaned';
-
-                // Nilai yang valid untuk <input type="date">
                 $lastCleanValue = $management?->last_clean
                     ? \Illuminate\Support\Carbon::parse($management->last_clean)->format('Y-m-d')
                     : null;
             @endphp
 
-            <div x-data="{ open:false }" class="relative">
+            <div x-data="{ open:false }" 
+                 class="relative"
+                 data-booking-id="{{ $bookingId }}"
+                 data-end-date="{{ $endDate }}"
+                 data-management-id="{{ $management?->id }}"
+            >
                 {{-- CARD --}}
                 <div
                     role="button" tabindex="0"
-                    class="p-4 rounded-2xl shadow-md hover:shadow-lg transition transform hover:-translate-y-1
+                    class="storage-card p-4 rounded-2xl shadow-md hover:shadow-lg transition transform hover:-translate-y-1
                            {{ $bgColor }} {{ $management ? 'cursor-pointer' : 'cursor-not-allowed opacity-80' }}"
                     @if($management)
                         @click="open = true; document.documentElement.classList.add('overflow-hidden')"
@@ -50,7 +56,9 @@
                     @endif
                 >
                     <div class="flex justify-between items-center mb-3">
-                        <span class="text-lg font-semibold">{{ $statusIcon }} {{ $statusText }}</span>
+                        <span class="text-lg font-semibold status-icon">
+                            {{ $statusIcon }} <span class="status-text">{{ $statusText }}</span>
+                        </span>
                         <span class="text-sm bg-white/20 px-3 py-1 rounded-full">{{ $size }}</span>
                     </div>
 
@@ -63,7 +71,7 @@
                     </p>
                 </div>
 
-                {{-- MODAL (Tailwind + Alpine) --}}
+                {{-- MODAL --}}
                 @if($management)
                 <div
                     x-show="open"
@@ -104,6 +112,20 @@
                                     >
                                 </div>
 
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700" for="cost-{{ $management->id }}">
+                                        Biaya Kebersihan (Optional)
+                                    </label>
+                                    <input
+                                        id="cost-{{ $management->id }}"
+                                        type="number"
+                                        name="cost"
+                                        placeholder="0"
+                                        class="w-full border rounded-lg p-2 mt-1 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                    >
+                                    <p class="text-xs text-gray-500 mt-1">Isi jika ingin mencatat pengeluaran otomatis.</p>
+                                </div>
+
                                 <div class="flex justify-end gap-2">
                                     <button type="button"
                                             @click="open = false; document.documentElement.classList.remove('overflow-hidden')"
@@ -124,5 +146,44 @@
         @endforeach
     </div>
 @endforeach
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const now = new Date();
+    const cards = document.querySelectorAll('.storage-card');
+
+    cards.forEach(card => {
+        const container = card.closest('div[data-booking-id]');
+        const bookingId = container?.dataset.bookingId;
+        const endDateStr = container?.dataset.endDate;
+
+        // Jika tidak ada booking_id → Available
+        if (!bookingId || bookingId === 'null' || bookingId === '') {
+            card.className = card.className
+                .replace(/from-(red|blue|green)-\d{3}/g, '')
+                .replace(/to-(red|blue|green)-\d{3}/g, '');
+            card.classList.add('from-green-200', 'to-green-300');
+            card.querySelector('.status-icon').innerHTML = '✔ <span class="status-text">Available</span>';
+            return;
+        }
+
+        // Jika ada booking_id dan ada end_date
+        if (endDateStr && endDateStr !== 'null') {
+            const endDate = new Date(endDateStr);
+            const isOverdue = endDate < now;
+
+            if (isOverdue) {
+                // Overdue → Biru
+                card.className = card.className
+                    .replace(/from-(red|blue|green)-\d{3}/g, '')
+                    .replace(/to-(red|blue|green)-\d{3}/g, '');
+                card.classList.add('from-blue-300', 'to-blue-500');
+                card.querySelector('.status-icon').innerHTML = '⚠️ <span class="status-text">Overdue</span>';
+            }
+           
+        }
+    });
+});
+</script>
 
 @endsection
