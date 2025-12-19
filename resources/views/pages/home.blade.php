@@ -39,7 +39,7 @@
           </p>
 
           <div class="mt-8 flex flex-col sm:flex-row gap-3 justify-center">
-            <a href="{{ url('/contact') }}"
+            <a href="{{ url('/booking') }}"
                class="inline-flex items-center justify-center px-6 py-3 rounded-xl bg-orange-600 text-white hover:bg-orange-700 transition shadow-lg shadow-orange-600/20">
               Start Booking
               <i class="ph-bold ph-arrow-right ml-2"></i>
