@@ -114,8 +114,8 @@ Route::prefix('expenses')->name('expenses.')->middleware(['auth', 'role:admin'])
 
 Route::prefix('report')->name('report.')->middleware(['auth', 'role:admin'])->group(function () {
     Route::get('/', [ReportController::class, 'index'])->name('index');
-    Route::get('/export-excel', [ReportController::class, 'exportExcel'])->name('export-excel'); // Todo
-    Route::get('/export-pdf', [ReportController::class, 'exportPdf'])->name('export-pdf'); // Todo
+    Route::get('/export-excel', [ReportController::class, 'exportExcel'])->name('export-excel'); 
+    Route::get('/export-pdf', [ReportController::class, 'exportPdf'])->name('export-pdf'); 
 });
 
 Route::post('midtrans-notification', [MidtransController::class, 'notification']);
