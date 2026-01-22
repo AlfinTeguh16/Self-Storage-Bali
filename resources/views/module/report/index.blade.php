@@ -1,12 +1,12 @@
 @extends('layouts.master')
-@section('title', 'Laporan Keuangan & Operasional')
+@section('title', 'Financial & Operational Reports')
 
 @section('content')
 <section>
     <div class="flex flex-col md:flex-row justify-between items-center mb-6">
         <div>
-            <h1 class="text-2xl font-semibold mb-2">Laporan Keuangan & Operasional</h1>
-            <p class="text-gray-600">Ringkasan pengeluaran dan estimasi biaya operasional.</p>
+            <h1 class="text-2xl font-semibold mb-2">Financial & Operational Reports</h1>
+            <p class="text-gray-600">Summary of expenses and estimated operational costs.</p>
         </div>
         
         <!-- Filter Form -->
@@ -31,8 +31,8 @@
         <div class="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
             <div class="flex justify-between items-start mb-4">
                 <div>
-                    <h2 class="text-lg font-semibold text-gray-800">Total Pengeluaran</h2>
-                    <p class="text-sm text-gray-500">Bulan Ini (Gaji, Kebersihan, dll)</p>
+                    <h2 class="text-lg font-semibold text-gray-800">Total Expenses</h2>
+                    <p class="text-sm text-gray-500">This Month (Salary, Cleaning, etc.)</p>
                 </div>
                 <div class="p-2 bg-indigo-50 rounded-lg text-indigo-600">
                     <i class="ph-bold ph-money w-6 h-6 text-2xl"></i>
@@ -45,15 +45,15 @@
         <div class="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
             <div class="flex justify-between items-start mb-4">
                 <div>
-                    <h2 class="text-lg font-semibold text-gray-800">Estimasi Listrik</h2>
-                    <p class="text-sm text-gray-500">Estimasi berdasarkan durasi booking aktif</p>
+                    <h2 class="text-lg font-semibold text-gray-800">Electricity Estimate</h2>
+                    <p class="text-sm text-gray-500">Estimate based on active booking duration</p>
                 </div>
                 <div class="p-2 bg-amber-50 rounded-lg text-amber-600">
                     <i class="ph-bold ph-lightning w-6 h-6 text-2xl"></i>
                 </div>
             </div>
             <div class="text-3xl font-bold text-amber-600">Rp {{ number_format($totalElectricityCost, 0, ',', '.') }}</div>
-            <p class="text-xs text-gray-400 mt-2">*Kalkulasi: Durasi Booking x Tarif Harian</p>
+            <p class="text-xs text-gray-400 mt-2">*Calculation: Booking Duration x Daily Rate</p>
         </div>
     </div>
 
@@ -62,14 +62,14 @@
         <!-- Rincian Table -->
         <div class="lg:col-span-2 bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
              <header class="px-6 py-4 border-b border-gray-100 bg-gray-50">
-                <h2 class="font-semibold text-gray-800">Rincian Pengeluaran</h2>
+                <h2 class="font-semibold text-gray-800">Expense Breakdown</h2>
             </header>
             <div class="overflow-x-auto">
                 <table class="min-w-full">
                     <thead>
                         <tr class="bg-white text-gray-500 text-xs uppercase border-b border-gray-100">
-                            <th class="px-6 py-3 text-left font-medium">Kategori</th>
-                            <th class="px-6 py-3 text-right font-medium">Jumlah</th>
+                            <th class="px-6 py-3 text-left font-medium">Category</th>
+                            <th class="px-6 py-3 text-right font-medium">Amount</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-100">
@@ -81,13 +81,13 @@
                         @endforeach
                         <!-- Add Electricity to list visually -->
                         <tr class="hover:bg-amber-50 bg-amber-50/30">
-                            <td class="px-6 py-3 text-sm text-amber-700 font-medium">Listrik (Estimasi)</td>
+                            <td class="px-6 py-3 text-sm text-amber-700 font-medium">Electricity (Estimate)</td>
                             <td class="px-6 py-3 text-sm text-right font-medium text-amber-700">Rp {{ number_format($totalElectricityCost, 0, ',', '.') }}</td>
                         </tr>
                     </tbody>
                     <tfoot class="bg-gray-50 font-bold text-gray-800 border-t border-gray-200">
                          <tr>
-                            <td class="px-6 py-3">TOTAL ESTIMASI</td>
+                            <td class="px-6 py-3">TOTAL ESTIMATE</td>
                             <td class="px-6 py-3 text-right">Rp {{ number_format($totalExpenses + $totalElectricityCost, 0, ',', '.') }}</td>
                         </tr>
                     </tfoot>

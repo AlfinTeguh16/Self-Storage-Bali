@@ -9,7 +9,7 @@ class StorageManagement extends Model
     protected $table = 'tb_storage_management';
 
     protected $fillable = [
-        'storage_id', 'booking_id', 'status', 'last_clean', 'is_deleted',
+        'storage_id', 'booking_id', 'customer_id', 'status', 'start_date', 'end_date', 'last_clean', 'is_deleted',
     ];
 
 

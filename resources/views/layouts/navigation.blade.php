@@ -29,10 +29,10 @@
               <p class="mr-2"> <i class="ph ph-credit-card"></i>Payment </p>
             </x-nav-link>
             <x-nav-link href="{{ route('expenses.index') }}" :active="request()->routeIs('expenses.*')">
-              <p class="mr-2"> <i class="ph ph-money"></i>Pengeluaran </p>
+              <p class="mr-2"> <i class="ph ph-money"></i>Expenses </p>
             </x-nav-link>
             <x-nav-link href="{{ route('report.index') }}" :active="request()->routeIs('report.*')">
-              <p class="mr-2"> <i class="ph ph-chart-line"></i>Laporan </p>
+              <p class="mr-2"> <i class="ph ph-chart-line"></i>Reports </p>
             </x-nav-link>
           @endif
         @endauth

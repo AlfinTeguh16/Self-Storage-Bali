@@ -108,11 +108,32 @@ class MasterSeeder extends Seeder
 
         // ----------------------------
         // tb_bookings
+        // Menambahkan variasi booking untuk testing laporan yang lebih baik
         // ----------------------------
-        $start1 = Carbon::now()->subDays(2)->toDateString();
-        $end1 = Carbon::now()->addDays(5)->toDateString();
-        $totalDate1 = Carbon::parse($start1)->diffInDays(Carbon::parse($end1));
-        $totalPrice1 = $totalDate1 * 100000 / 10; // contoh: berdasarkan price di storages (10000 jika diinginkan)
+        
+        // Booking 1: Booking aktif saat ini (untuk kalkulasi listrik bulan ini)
+        $start1 = Carbon::now()->subDays(10)->toDateString();
+        $end1 = Carbon::now()->addDays(20)->toDateString();
+        $totalDate1 = Carbon::parse($start1)->diffInDays(Carbon::parse($end1)) + 1;
+        $totalPrice1 = $totalDate1 * 100000;
+
+        // Booking 2: Booking sukses bulan ini
+        $start2 = Carbon::now()->startOfMonth()->toDateString();
+        $end2 = Carbon::now()->addDays(5)->toDateString();
+        $totalDate2 = Carbon::parse($start2)->diffInDays(Carbon::parse($end2)) + 1;
+        $totalPrice2 = $totalDate2 * 250000;
+        
+        // Booking 3: Booking dari bulan lalu (untuk test filter)
+        $start3 = Carbon::now()->subMonth()->startOfMonth()->toDateString();
+        $end3 = Carbon::now()->subMonth()->addDays(15)->toDateString();
+        $totalDate3 = Carbon::parse($start3)->diffInDays(Carbon::parse($end3)) + 1;
+        $totalPrice3 = $totalDate3 * 100000;
+        
+        // Booking 4: Booking aktif lintas bulan (dari bulan lalu sampai bulan ini)
+        $start4 = Carbon::now()->subMonth()->addDays(20)->toDateString();
+        $end4 = Carbon::now()->addDays(10)->toDateString();
+        $totalDate4 = Carbon::parse($start4)->diffInDays(Carbon::parse($end4)) + 1;
+        $totalPrice4 = $totalDate4 * 250000;
 
         $bookings = [
             [
@@ -124,8 +145,8 @@ class MasterSeeder extends Seeder
                 'end_date' => $end1,
                 'total_date' => $totalDate1,
                 'total_price' => $totalPrice1,
-                'notes' => 'Pengiriman akan dilakukan setiap Senin.',
-                'status' => 'pending',
+                'notes' => 'Office furniture storage for renovation',
+                'status' => 'success',
                 'is_deleted' => 0,
                 'created_at' => $now,
                 'updated_at' => $now,
@@ -135,12 +156,57 @@ class MasterSeeder extends Seeder
                 'customer_id' => 2,
                 'storage_id' => 2,
                 'booking_ref' => 'BK' . Carbon::now()->format('Ymd') . '-002',
-                'start_date' => Carbon::now()->toDateString(),
-                'end_date' => Carbon::now()->addDays(3)->toDateString(),
-                'total_date' => 3,
-                'total_price' => 3 * 250000 / 10,
-                'notes' => 'Butuh akses lift.',
+                'start_date' => $start2,
+                'end_date' => $end2,
+                'total_date' => $totalDate2,
+                'total_price' => $totalPrice2,
+                'notes' => 'Moving items storage',
                 'status' => 'success',
+                'is_deleted' => 0,
+                'created_at' => $now,
+                'updated_at' => $now,
+            ],
+            [
+                'id' => 3,
+                'customer_id' => 1,
+                'storage_id' => 1,
+                'booking_ref' => 'BK' . Carbon::now()->subMonth()->format('Ymd') . '-003',
+                'start_date' => $start3,
+                'end_date' => $end3,
+                'total_date' => $totalDate3,
+                'total_price' => $totalPrice3,
+                'notes' => 'Company document archive storage',
+                'status' => 'success',
+                'is_deleted' => 0,
+                'created_at' => Carbon::now()->subMonth()->toDateTimeString(),
+                'updated_at' => Carbon::now()->subMonth()->toDateTimeString(),
+            ],
+            [
+                'id' => 4,
+                'customer_id' => 2,
+                'storage_id' => 2,
+                'booking_ref' => 'BK' . Carbon::now()->subMonth()->format('Ymd') . '-004',
+                'start_date' => $start4,
+                'end_date' => $end4,
+                'total_date' => $totalDate4,
+                'total_price' => $totalPrice4,
+                'notes' => 'Store inventory during renovation',
+                'status' => 'success',
+                'is_deleted' => 0,
+                'created_at' => Carbon::now()->subMonth()->toDateTimeString(),
+                'updated_at' => Carbon::now()->subMonth()->toDateTimeString(),
+            ],
+            [
+                'id' => 5,
+                'customer_id' => 1,
+                'storage_id' => 1,
+                'booking_ref' => 'BK' . Carbon::now()->format('Ymd') . '-005',
+                'start_date' => Carbon::now()->toDateString(),
+                'end_date' => Carbon::now()->addDays(7)->toDateString(),
+                'total_date' => 8,
+                'total_price' => 800000,
+                'notes' => 'Event equipment storage',
+                'status' => 'pending',
                 'is_deleted' => 0,
                 'created_at' => $now,
                 'updated_at' => $now,
@@ -157,11 +223,11 @@ class MasterSeeder extends Seeder
                 'id' => 1,
                 'customer_id' => 1,
                 'booking_id' => 1,
-                'method' => 'bank_transfer',
-                'status' => 'pending',
+                'method' => 'midtrans',
+                'status' => 'success',
                 'transaction_file' => null,
-                'payment_url' => null,
-                'midtrans_order_id' => null,
+                'payment_url' => 'https://payment.example/abc1',
+                'midtrans_order_id' => 'ORDER-' . Carbon::now()->format('YmdHis') . '-001',
                 'is_deleted' => 0,
                 'created_at' => $now,
                 'updated_at' => $now,
@@ -170,11 +236,50 @@ class MasterSeeder extends Seeder
                 'id' => 2,
                 'customer_id' => 2,
                 'booking_id' => 2,
+                'method' => 'bank_transfer',
+                'status' => 'success',
+                'transaction_file' => null,
+                'payment_url' => null,
+                'midtrans_order_id' => null,
+                'is_deleted' => 0,
+                'created_at' => $now,
+                'updated_at' => $now,
+            ],
+            [
+                'id' => 3,
+                'customer_id' => 1,
+                'booking_id' => 3,
                 'method' => 'midtrans',
                 'status' => 'success',
                 'transaction_file' => null,
-                'payment_url' => 'https://payment.example/abcd',
-                'midtrans_order_id' => 'ORDER-' . Carbon::now()->format('YmdHis'),
+                'payment_url' => 'https://payment.example/abc3',
+                'midtrans_order_id' => 'ORDER-' . Carbon::now()->subMonth()->format('YmdHis') . '-003',
+                'is_deleted' => 0,
+                'created_at' => Carbon::now()->subMonth()->toDateTimeString(),
+                'updated_at' => Carbon::now()->subMonth()->toDateTimeString(),
+            ],
+            [
+                'id' => 4,
+                'customer_id' => 2,
+                'booking_id' => 4,
+                'method' => 'bank_transfer',
+                'status' => 'success',
+                'transaction_file' => null,
+                'payment_url' => null,
+                'midtrans_order_id' => null,
+                'is_deleted' => 0,
+                'created_at' => Carbon::now()->subMonth()->toDateTimeString(),
+                'updated_at' => Carbon::now()->subMonth()->toDateTimeString(),
+            ],
+            [
+                'id' => 5,
+                'customer_id' => 1,
+                'booking_id' => 5,
+                'method' => 'bank_transfer',
+                'status' => 'pending',
+                'transaction_file' => null,
+                'payment_url' => null,
+                'midtrans_order_id' => null,
                 'is_deleted' => 0,
                 'created_at' => $now,
                 'updated_at' => $now,
@@ -192,7 +297,7 @@ class MasterSeeder extends Seeder
                 'storage_id' => 1,
                 'booking_id' => 1,
                 'status' => 'booked',
-                'last_clean' => null,
+                'last_clean' => Carbon::now()->subDays(5)->toDateString(),
                 'is_deleted' => 0,
                 'created_at' => $now,
                 'updated_at' => $now,
@@ -202,7 +307,37 @@ class MasterSeeder extends Seeder
                 'storage_id' => 2,
                 'booking_id' => 2,
                 'status' => 'booked',
-                'last_clean' => Carbon::now()->subDays(1)->toDateString(),
+                'last_clean' => Carbon::now()->subDays(3)->toDateString(),
+                'is_deleted' => 0,
+                'created_at' => $now,
+                'updated_at' => $now,
+            ],
+            [
+                'id' => 3,
+                'storage_id' => 1,
+                'booking_id' => 3,
+                'status' => 'booked',
+                'last_clean' => Carbon::now()->subMonth()->addDays(10)->toDateString(),
+                'is_deleted' => 0,
+                'created_at' => Carbon::now()->subMonth()->toDateTimeString(),
+                'updated_at' => Carbon::now()->subMonth()->toDateTimeString(),
+            ],
+            [
+                'id' => 4,
+                'storage_id' => 2,
+                'booking_id' => 4,
+                'status' => 'booked',
+                'last_clean' => Carbon::now()->subMonth()->addDays(20)->toDateString(),
+                'is_deleted' => 0,
+                'created_at' => Carbon::now()->subMonth()->toDateTimeString(),
+                'updated_at' => Carbon::now()->subMonth()->toDateTimeString(),
+            ],
+            [
+                'id' => 5,
+                'storage_id' => 1,
+                'booking_id' => 5,
+                'status' => 'booked',
+                'last_clean' => null,
                 'is_deleted' => 0,
                 'created_at' => $now,
                 'updated_at' => $now,
@@ -210,6 +345,192 @@ class MasterSeeder extends Seeder
         ];
         $storageManagement = array_map(fn($r) => $this->sanitizeRow('tb_storage_management', $r), $storageManagement);
         DB::table('tb_storage_management')->insert($storageManagement);
+
+        // ----------------------------
+        // tb_operational_expenses
+        // Menambahkan data pengeluaran operasional untuk berbagai kategori
+        // ----------------------------
+        $expenses = [];
+        
+        // Bulan ini - Gaji Karyawan
+        $expenses[] = [
+            'amount' => 5000000,
+            'category' => 'Salary',
+            'date' => Carbon::now()->startOfMonth()->toDateString(),
+            'description' => 'Admin Salary for ' . Carbon::now()->format('F Y'),
+            'booking_id' => null,
+            'storage_id' => null,
+            'created_at' => $now,
+            'updated_at' => $now,
+        ];
+        
+        $expenses[] = [
+            'amount' => 4500000,
+            'category' => 'Salary',
+            'date' => Carbon::now()->startOfMonth()->toDateString(),
+            'description' => 'Warehouse Staff Salary for ' . Carbon::now()->format('F Y'),
+            'booking_id' => null,
+            'storage_id' => null,
+            'created_at' => $now,
+            'updated_at' => $now,
+        ];
+        
+        // Bulan ini - Kebersihan
+        $expenses[] = [
+            'amount' => 350000,
+            'category' => 'Cleaning',
+            'date' => Carbon::now()->subDays(5)->toDateString(),
+            'description' => 'Cleaning Storage Unit #1',
+            'booking_id' => 1,
+            'storage_id' => 1,
+            'created_at' => $now,
+            'updated_at' => $now,
+        ];
+        
+        $expenses[] = [
+            'amount' => 275000,
+            'category' => 'Cleaning',
+            'date' => Carbon::now()->subDays(3)->toDateString(),
+            'description' => 'Routine Public Area Cleaning',
+            'booking_id' => null,
+            'storage_id' => null,
+            'created_at' => $now,
+            'updated_at' => $now,
+        ];
+        
+        // Bulan ini - Lainnya
+        $expenses[] = [
+            'amount' => 1500000,
+            'category' => 'Others',
+            'date' => Carbon::now()->subDays(10)->toDateString(),
+            'description' => 'AC and Ventilation Maintenance',
+            'booking_id' => null,
+            'storage_id' => null,
+            'created_at' => $now,
+            'updated_at' => $now,
+        ];
+        
+        $expenses[] = [
+            'amount' => 850000,
+            'category' => 'Others',
+            'date' => Carbon::now()->subDays(15)->toDateString(),
+            'description' => 'Security System Maintenance',
+            'booking_id' => null,
+            'storage_id' => null,
+            'created_at' => $now,
+            'updated_at' => $now,
+        ];
+        
+        // Bulan lalu - untuk testing filter
+        $lastMonth = Carbon::now()->subMonth();
+        
+        $expenses[] = [
+            'amount' => 5000000,
+            'category' => 'Salary',
+            'date' => $lastMonth->copy()->startOfMonth()->toDateString(),
+            'description' => 'Admin Salary for ' . $lastMonth->format('F Y'),
+            'booking_id' => null,
+            'storage_id' => null,
+            'created_at' => $now,
+            'updated_at' => $now,
+        ];
+        
+        $expenses[] = [
+            'amount' => 4500000,
+            'category' => 'Salary',
+            'date' => $lastMonth->copy()->startOfMonth()->toDateString(),
+            'description' => 'Warehouse Staff Salary for ' . $lastMonth->format('F Y'),
+            'booking_id' => null,
+            'storage_id' => null,
+            'created_at' => $now,
+            'updated_at' => $now,
+        ];
+        
+        $expenses[] = [
+            'amount' => 425000,
+            'category' => 'Cleaning',
+            'date' => $lastMonth->copy()->addDays(10)->toDateString(),
+            'description' => 'Cleaning Storage Unit #2',
+            'booking_id' => 2,
+            'storage_id' => 2,
+            'created_at' => $now,
+            'updated_at' => $now,
+        ];
+        
+        $expenses[] = [
+            'amount' => 2200000,
+            'category' => 'Others',
+            'date' => $lastMonth->copy()->addDays(5)->toDateString(),
+            'description' => 'Minor Storage Area Renovation',
+            'booking_id' => null,
+            'storage_id' => null,
+            'created_at' => $now,
+            'updated_at' => $now,
+        ];
+        
+        // 2 bulan lalu - untuk memastikan ada data historis
+        $twoMonthsAgo = Carbon::now()->subMonths(2);
+        
+        $expenses[] = [
+            'amount' => 5000000,
+            'category' => 'Salary',
+            'date' => $twoMonthsAgo->copy()->startOfMonth()->toDateString(),
+            'description' => 'Admin Salary for ' . $twoMonthsAgo->format('F Y'),
+            'booking_id' => null,
+            'storage_id' => null,
+            'created_at' => $now,
+            'updated_at' => $now,
+        ];
+        
+        $expenses[] = [
+            'amount' => 4500000,
+            'category' => 'Salary',
+            'date' => $twoMonthsAgo->copy()->startOfMonth()->toDateString(),
+            'description' => 'Warehouse Staff Salary for ' . $twoMonthsAgo->format('F Y'),
+            'booking_id' => null,
+            'storage_id' => null,
+            'created_at' => $now,
+            'updated_at' => $now,
+        ];
+        
+        $expenses[] = [
+            'amount' => 600000,
+            'category' => 'Cleaning',
+            'date' => $twoMonthsAgo->copy()->addDays(12)->toDateString(),
+            'description' => 'Thorough Cleaning of All Units',
+            'booking_id' => null,
+            'storage_id' => null,
+            'created_at' => $now,
+            'updated_at' => $now,
+        ];
+        
+        $expenses[] = [
+            'amount' => 1800000,
+            'category' => 'Others',
+            'date' => $twoMonthsAgo->copy()->addDays(8)->toDateString(),
+            'description' => 'Alarm System Upgrade',
+            'booking_id' => null,
+            'storage_id' => null,
+            'created_at' => $now,
+            'updated_at' => $now,
+        ];
+        
+        $expenses = array_map(fn($r) => $this->sanitizeRow('tb_operational_expenses', $r), $expenses);
+        DB::table('tb_operational_expenses')->insert($expenses);
+
+        // ----------------------------
+        // tb_app_settings (untuk electricity rate)
+        // ----------------------------
+        $appSettings = [
+            [
+                'key' => 'electricity_daily_rate',
+                'value' => '2500',
+                'created_at' => $now,
+                'updated_at' => $now,
+            ],
+        ];
+        $appSettings = array_map(fn($r) => $this->sanitizeRow('tb_app_settings', $r), $appSettings);
+        DB::table('tb_app_settings')->insert($appSettings);
 
         // Aktifkan kembali foreign key checks
         DB::statement('SET FOREIGN_KEY_CHECKS=1;');

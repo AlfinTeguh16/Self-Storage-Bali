@@ -41,7 +41,7 @@ Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth')->n
 
 // ====================== Dashboard ======================
 Route::middleware('auth')->get('/dashboard', function () {
-    return match(Auth::User()->akses) {
+    return match(Auth::User()->role) {
         'admin' => redirect()->route('dashboard.admin'),
         default => abort(403),
     };

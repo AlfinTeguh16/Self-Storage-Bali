@@ -2,11 +2,11 @@
 
 namespace App\Http\Controllers;
 
-use Midtrans\Midtrans;
 use Midtrans\Transaction;
 use Midtrans\Notification;
 use App\Models\Booking;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 class MidtransController extends Controller
 {
@@ -21,6 +21,12 @@ class MidtransController extends Controller
         // Find the booking by order_id
         $booking = Booking::where('booking_ref', $order_id)->first();
 
+        // Check if booking exists before updating
+        if (!$booking) {
+            Log::warning('Midtrans notification: Booking not found', ['order_id' => $order_id]);
+            return response()->json(['status' => 'error', 'message' => 'Booking not found'], 404);
+        }
+
         if ($status == 'capture' || $status == 'settlement') {
             $booking->update(['status' => 'success']);
         } elseif ($status == 'pending') {
@@ -29,9 +35,11 @@ class MidtransController extends Controller
             $booking->update(['status' => 'failed']);
         }
 
-        // Optionally send email to customer confirming the payment
-        // Mail::to($customer->email)->queue(new PaymentEmail($paymentUrl));
-
+        Log::info('Midtrans notification processed', [
+            'order_id' => $order_id,
+            'status' => $status,
+            'booking_id' => $booking->id
+        ]);
 
         return response()->json(['status' => 'success']);
     }

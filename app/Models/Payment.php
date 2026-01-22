@@ -9,7 +9,8 @@ class Payment extends Model
     protected $table = 'tb_payments';
 
     protected $fillable = [
-        'customer_id', 'method', 'transaction_file', 'is_deleted',
+        'customer_id', 'booking_id', 'method', 'status', 'transaction_file', 
+        'payment_url', 'midtrans_order_id', 'is_deleted',
     ];
 
     public function customer()
