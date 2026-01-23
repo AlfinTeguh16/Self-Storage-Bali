@@ -564,8 +564,8 @@ class BookingController extends Controller
         $customer = $booking->customer;
 
         // 🔑 Konfigurasi Midtrans
-        Config::$serverKey    = env('MIDTRANS_SERVER_KEY');
-        Config::$isProduction = filter_var(env('MIDTRANS_IS_PRODUCTION', false), FILTER_VALIDATE_BOOLEAN);
+        Config::$serverKey    = config('midtrans.server_key');
+        Config::$isProduction = config('midtrans.is_production', false);
         Config::$isSanitized  = true;
         Config::$is3ds        = true;
 
