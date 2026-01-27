@@ -26,7 +26,6 @@
                 <h1 class="text-3xl md:text-4xl font-bold mb-3">Booking Confirmed!</h1>
                 <p class="text-lg opacity-90">
                     Thank you, <strong>{{ $booking->customer->name }}</strong>.  
-                    We’ve sent your booking details to your WhatsApp.
                 </p>
             </div>
         </section>

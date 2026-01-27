@@ -63,7 +63,7 @@ class MasterSeeder extends Seeder
             [
                 'id' => 1,
                 'size' => 'Small (1 m³)',
-                'price' => 100000,
+                'price' => 10000,
                 'description' => 'Container kecil, cocok untuk barang rumah tangga.',
                 'is_deleted' => 0,
                 'created_at' => $now,
@@ -72,8 +72,26 @@ class MasterSeeder extends Seeder
             [
                 'id' => 2,
                 'size' => 'Medium (3 m³)',
-                'price' => 250000,
+                'price' => 25000,
                 'description' => 'Container medium untuk perabotan sedang.',
+                'is_deleted' => 0,
+                'created_at' => $now,
+                'updated_at' => $now,
+            ],
+            [
+                'id' => 3,
+                'size' => 'Large (5 m³)',
+                'price' => 40000,
+                'description' => 'Container besar untuk peralatan dan furniture besar.',
+                'is_deleted' => 0,
+                'created_at' => $now,
+                'updated_at' => $now,
+            ],
+            [
+                'id' => 4,
+                'size' => 'Extra Large (10 m³)',
+                'price' => 50000,
+                'description' => 'Container ekstra besar untuk kebutuhan bisnis/gudang.',
                 'is_deleted' => 0,
                 'created_at' => $now,
                 'updated_at' => $now,
@@ -115,25 +133,25 @@ class MasterSeeder extends Seeder
         $start1 = Carbon::now()->subDays(10)->toDateString();
         $end1 = Carbon::now()->addDays(20)->toDateString();
         $totalDate1 = Carbon::parse($start1)->diffInDays(Carbon::parse($end1)) + 1;
-        $totalPrice1 = $totalDate1 * 100000;
+        $totalPrice1 = $totalDate1 * 10000; // Small storage @ 10,000/day
 
         // Booking 2: Booking sukses bulan ini
         $start2 = Carbon::now()->startOfMonth()->toDateString();
         $end2 = Carbon::now()->addDays(5)->toDateString();
         $totalDate2 = Carbon::parse($start2)->diffInDays(Carbon::parse($end2)) + 1;
-        $totalPrice2 = $totalDate2 * 250000;
+        $totalPrice2 = $totalDate2 * 25000; // Medium storage @ 25,000/day
         
         // Booking 3: Booking dari bulan lalu (untuk test filter)
         $start3 = Carbon::now()->subMonth()->startOfMonth()->toDateString();
         $end3 = Carbon::now()->subMonth()->addDays(15)->toDateString();
         $totalDate3 = Carbon::parse($start3)->diffInDays(Carbon::parse($end3)) + 1;
-        $totalPrice3 = $totalDate3 * 100000;
+        $totalPrice3 = $totalDate3 * 10000; // Small storage @ 10,000/day
         
         // Booking 4: Booking aktif lintas bulan (dari bulan lalu sampai bulan ini)
         $start4 = Carbon::now()->subMonth()->addDays(20)->toDateString();
         $end4 = Carbon::now()->addDays(10)->toDateString();
         $totalDate4 = Carbon::parse($start4)->diffInDays(Carbon::parse($end4)) + 1;
-        $totalPrice4 = $totalDate4 * 250000;
+        $totalPrice4 = $totalDate4 * 25000; // Medium storage @ 25,000/day
 
         $bookings = [
             [
@@ -204,7 +222,7 @@ class MasterSeeder extends Seeder
                 'start_date' => Carbon::now()->toDateString(),
                 'end_date' => Carbon::now()->addDays(7)->toDateString(),
                 'total_date' => 8,
-                'total_price' => 800000,
+                'total_price' => 80000, // 8 days @ 10,000/day
                 'notes' => 'Event equipment storage',
                 'status' => 'pending',
                 'is_deleted' => 0,
