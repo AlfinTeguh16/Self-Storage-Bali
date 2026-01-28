@@ -31,6 +31,10 @@ Route::get('/online-booking', [NonAuthController::class, 'showBookingForm'])->na
 Route::post('/online-booking', [NonAuthController::class, 'onlineBooking'])->name('online.booking');
 Route::get('/booking', [NonAuthController::class, 'showAvailableStorage'])->name('show.storage');
 Route::get('/booking-success/{bookingId}', [NonAuthController::class, 'bookingSuccess'])->name('booking.success');
+Route::get('/payment/{bookingId}', [NonAuthController::class, 'showPaymentPage'])->name('payment.page');
+Route::post('/payment/{bookingId}/process', [MidtransController::class, 'processCreditCard'])->name('payment.process');
+Route::get('/receipt/{bookingId}', [NonAuthController::class, 'showReceipt'])->name('receipt.show');
+
 
 Route::middleware('guest')->group(function () {
     Route::view('/login', 'auth.login')->name('auth.login');

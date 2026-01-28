@@ -18,6 +18,18 @@
     @include('components.navbar')
 
     <main class="pb-20">
+        @if(session('success'))
+        <div class="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 mb-4" role="alert">
+            <div class="flex items-center">
+                <i class="ph-duotone ph-check-circle text-2xl mr-3"></i>
+                <div>
+                    <p class="font-bold">Payment Successful!</p>
+                    <p>{{ session('success') }}</p>
+                </div>
+            </div>
+        </div>
+        @endif
+
         <section class="bg-gradient-to-br from-green-500 to-emerald-600 text-white pt-16 pb-20">
             <div class="container mx-auto px-4 text-center max-w-2xl">
                 <div class="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-6">

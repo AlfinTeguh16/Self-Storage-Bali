@@ -78,10 +78,10 @@ class NonAuthController extends Controller
      */
     public function onlineBooking(Request $request)
     {
-        // Validasi untuk pelanggan baru
+        // Validasi untuk pelanggan baru atau existing
         $validated = $request->validate([
             'name'        => 'required|string|max:255',
-            'email'       => 'required|email|unique:tb_customers,email',
+            'email'       => 'required|email',
             'phone'       => 'required|string|max:20',
             'address'     => 'nullable|string',
             'storage_id'  => [
@@ -117,10 +117,17 @@ class NonAuthController extends Controller
         $storage = Storage::findOrFail($validated['storage_id']);
         $totalPrice = $totalDate * $storage->price;
 
-        // Buat customer + booking dalam transaksi lalu commit sebelum panggil Midtrans
+        // Wrap EVERYTHING in a single transaction - including Midtrans call
+        // If Midtrans fails, all will be rolled back
+        DB::beginTransaction();
+        
         try {
-            $booking = DB::transaction(function () use ($validated, $totalDate, $totalPrice) {
-                // Buat customer
+            // Check if customer already exists by email
+            $customer = Customer::where('email', $validated['email'])->first();
+            $isNewCustomer = false;
+            
+            if (!$customer) {
+                // Buat customer baru
                 $customer = Customer::create([
                     'name'        => $validated['name'],
                     'address'     => $validated['address'] ?? null,
@@ -128,34 +135,31 @@ class NonAuthController extends Controller
                     'phone'       => $validated['phone'],
                     'is_deleted'  => false,
                 ]);
-
-                // Generate booking ref (pastikan trait/service sudah tersedia)
-                $bookingRef = $this->generateBookingRef();
-
-                // Buat booking
-                $booking = Booking::create([
-                    'customer_id' => $customer->id,
-                    'storage_id'  => $validated['storage_id'],
-                    'booking_ref' => $bookingRef,
-                    'start_date'  => $validated['start_date'],
-                    'end_date'    => $validated['end_date'],
-                    'total_date'  => $totalDate,
-                    'total_price' => $totalPrice,
-                    'status'      => 'pending',
-                    'is_deleted'  => false,
+                $isNewCustomer = true;
+            } else {
+                // Update customer data jika sudah ada
+                $customer->update([
+                    'name'    => $validated['name'],
+                    'phone'   => $validated['phone'],
+                    'address' => $validated['address'] ?? $customer->address,
                 ]);
+            }
 
-                // return array with booking and customer for use after commit
-                return [
-                    'booking'  => $booking,
-                    'customer' => $customer,
-                ];
-            });
+            // Generate unique booking ref dengan timestamp microseconds
+            $bookingRef = $this->generateBookingRef();
 
-            // Setelah commit: panggil Midtrans
-            $bookingModel = $booking['booking'];
-            $customerModel = $booking['customer'];
-            $amount = $totalPrice; // sudah dihitung sebelumnya
+            // Buat booking
+            $booking = Booking::create([
+                'customer_id' => $customer->id,
+                'storage_id'  => $validated['storage_id'],
+                'booking_ref' => $bookingRef,
+                'start_date'  => $validated['start_date'],
+                'end_date'    => $validated['end_date'],
+                'total_date'  => $totalDate,
+                'total_price' => $totalPrice,
+                'status'      => 'pending',
+                'is_deleted'  => false,
+            ]);
 
             // Konfigurasi Midtrans
             Config::$serverKey    = config('midtrans.server_key');
@@ -165,110 +169,91 @@ class NonAuthController extends Controller
 
             $params = [
                 'transaction_details' => [
-                    'order_id'     => $bookingModel->booking_ref,
-                    'gross_amount' => $amount,
+                    'order_id'     => $bookingRef,
+                    'gross_amount' => $totalPrice,
                 ],
                 'customer_details' => [
-                    'first_name' => $customerModel->name,
-                    'email'      => $customerModel->email,
-                    'phone'      => $customerModel->phone ?? null,
+                    'first_name' => $customer->name,
+                    'email'      => $customer->email,
+                    'phone'      => $customer->phone ?? null,
                 ],
             ];
 
-            try {
-                $tx = Snap::createTransaction($params);
-                $paymentUrl = $tx->redirect_url ?? null;
+            // Call Midtrans - if this fails, entire transaction will be rolled back
+            $tx = Snap::createTransaction($params);
+            $paymentUrl = $tx->redirect_url ?? null;
 
-                if (!$paymentUrl) {
-                    throw new \Exception('Midtrans did not return redirect_url.');
-                }
-
-                // Simpan row di tb_payments (flexible dengan Schema::hasColumn checks)
-                $paymentData = [
-                    'customer_id' => $customerModel->id,
-                    'method'      => 'midtrans',
-                    'is_deleted'  => 0,
-                    'created_at'  => now(),
-                    'updated_at'  => now(),
-                ];
-
-                if (Schema::hasColumn('tb_payments', 'booking_id')) {
-                    $paymentData['booking_id'] = $bookingModel->id;
-                }
-                if (Schema::hasColumn('tb_payments', 'status')) {
-                    $paymentData['status'] = 'pending';
-                }
-                if (Schema::hasColumn('tb_payments', 'payment_url')) {
-                    $paymentData['payment_url'] = $paymentUrl;
-                }
-                if (Schema::hasColumn('tb_payments', 'midtrans_order_id')) {
-                    $paymentData['midtrans_order_id'] = $bookingModel->booking_ref;
-                }
-
-                DB::table('tb_payments')->insert($paymentData);
-                Log::info('Payment row created (onlineBooking)', ['booking_id' => $bookingModel->id, 'customer_id' => $customerModel->id]);
-
-                // Kirim email berisi link pembayaran (tidak blocking flow)
-                try {
-                    Mail::to($customerModel->email)->send(new PaymentEmail($paymentUrl));
-                } catch (\Throwable $mailEx) {
-                    Log::error('Failed to send payment email (onlineBooking): '.$mailEx->getMessage());
-                }
-
-                // Kembalikan JSON sukses dengan link pembayaran
-                // return response()->json([
-                //     'message' => 'Booking berhasil dibuat. Silakan lanjut ke pembayaran.',
-                //     'booking_id' => $bookingModel->id,
-                //     'booking_ref' => $bookingModel->booking_ref,
-                //     'payment_url' => $paymentUrl,
-                // ], 201);
-                return redirect()->route('booking.success', ['bookingId' => $bookingModel->id]);
-
-            } catch (\Throwable $midEx) {
-                Log::error('Midtrans createTransaction failed (onlineBooking): '.$midEx->getMessage());
-
-                // Jika Midtrans gagal, tandai booking 'failed' dan beri notifikasi, lepas resource jika perlu
-                try {
-                    DB::transaction(function () use ($bookingModel) {
-                        $bookingModel->update(['status' => 'failed']);
-                        // jika kamu menggunakan StorageManagement atau resource allocation,
-                        // lakukan revert di sini (contoh jika ada StorageManagement table)
-                        if (class_exists(\App\Models\StorageManagement::class)) {
-                            \App\Models\StorageManagement::where('storage_id', $bookingModel->storage_id)
-                                ->where('booking_id', $bookingModel->id)
-                                ->update(['booking_id' => null, 'status' => 'available']);
-                        }
-                    });
-                    Log::info('Reverted booking state after Midtrans failure (onlineBooking)', ['booking_id' => $bookingModel->id]);
-                } catch (\Throwable $revertEx) {
-                    Log::error('Failed to revert booking after Midtrans failure: '.$revertEx->getMessage());
-                }
-
-                return response()->json([
-                    'message' => 'Gagal membuat transaksi pembayaran: ' . $midEx->getMessage()
-                ], 500);
-                
+            if (!$paymentUrl) {
+                throw new \Exception('Midtrans did not return redirect_url.');
             }
+
+            // Simpan row di tb_payments
+            $paymentData = [
+                'customer_id' => $customer->id,
+                'method'      => 'midtrans',
+                'is_deleted'  => 0,
+                'created_at'  => now(),
+                'updated_at'  => now(),
+            ];
+
+            if (Schema::hasColumn('tb_payments', 'booking_id')) {
+                $paymentData['booking_id'] = $booking->id;
+            }
+            if (Schema::hasColumn('tb_payments', 'status')) {
+                $paymentData['status'] = 'pending';
+            }
+            if (Schema::hasColumn('tb_payments', 'payment_url')) {
+                $paymentData['payment_url'] = $paymentUrl;
+            }
+            if (Schema::hasColumn('tb_payments', 'midtrans_order_id')) {
+                $paymentData['midtrans_order_id'] = $bookingRef;
+            }
+
+            DB::table('tb_payments')->insert($paymentData);
+            Log::info('Payment row created (onlineBooking)', ['booking_id' => $booking->id, 'customer_id' => $customer->id]);
+
+            // COMMIT transaction - only if Midtrans was successful
+            DB::commit();
+
+            // Kirim email berisi link pembayaran ke halaman mock payment
+            try {
+                $mockPaymentUrl = route('payment.page', ['bookingId' => $booking->id]);
+                Mail::to($customer->email)->send(new PaymentEmail($mockPaymentUrl));
+            } catch (\Throwable $mailEx) {
+                Log::error('Failed to send payment email (onlineBooking): '.$mailEx->getMessage());
+            }
+
+            // Redirect ke halaman sukses
+            return redirect()->route('booking.success', ['bookingId' => $booking->id]);
+
         } catch (\Throwable $e) {
+            // ROLLBACK - hapus semua data yang sudah dibuat
+            DB::rollBack();
+            
             Log::error('Error in onlineBooking: ' . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
-            return response()->json(['message' => 'Terjadi kesalahan: ' . $e->getMessage()], 500);
+            
+            // Return error message yang lebih user-friendly
+            $errorMessage = 'Terjadi kesalahan saat memproses pemesanan. Silakan coba lagi.';
+            
+            if (str_contains($e->getMessage(), 'order_id sudah digunakan')) {
+                $errorMessage = 'Terjadi kesalahan sistem. Silakan refresh halaman dan coba lagi.';
+            } elseif (str_contains($e->getMessage(), 'Midtrans')) {
+                $errorMessage = 'Gagal menghubungi layanan pembayaran. Silakan coba beberapa saat lagi.';
+            }
+            
+            return back()->withErrors(['booking' => $errorMessage])->withInput();
         }
     }
 
 
+
     private function generateBookingRef()
     {
-        $prefix = 'BK-' . now()->format('Ymd');
-        $last = Booking::whereDate('created_at', today())
-            ->orderByDesc('id')->value('booking_ref');
-
-        $newNumber = '0001';
-        if ($last && str_starts_with($last, $prefix.'-')) {
-            $lastNum = (int) substr($last, -4);
-            $newNumber = str_pad($lastNum + 1, 4, '0', STR_PAD_LEFT);
-        }
-
-        return $prefix . '-' . $newNumber;
+        // Use microseconds to ensure uniqueness even for rapid requests
+        $timestamp = now()->format('YmdHis') . substr(microtime(), 2, 4);
+        $random = strtoupper(substr(uniqid(), -4));
+        
+        return 'BK-' . $timestamp . '-' . $random;
     }
 
     /**
@@ -289,5 +274,30 @@ class NonAuthController extends Controller
     public function showAvailableStorage(Request $request)
     {
         return $this->showBookingForm($request);
+    }
+
+    /**
+     * Show payment selection page (mock Midtrans-like page)
+     */
+    public function showPaymentPage($bookingId)
+    {
+        $booking = Booking::with(['customer', 'storage'])
+            ->where('id', $bookingId)
+            ->where('status', 'pending')
+            ->firstOrFail();
+
+        return view('pages.payment', compact('booking'));
+    }
+
+    /**
+     * Show payment receipt page
+     */
+    public function showReceipt($bookingId)
+    {
+        $booking = Booking::with(['customer', 'storage'])
+            ->where('id', $bookingId)
+            ->firstOrFail();
+
+        return view('pages.receipt', compact('booking'));
     }
 }

@@ -76,7 +76,7 @@
         <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:600px; margin-bottom:12px;">
           <tr>
             <td align="left" class="px" style="padding:8px 0; font-weight:700; font-size:18px; color:#0f172a; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
-              {{ config('app.name') }}
+              <span>Self Storage Bali</span>
             </td>
           </tr>
         </table>
